@@ -2,7 +2,8 @@
 /dist
 /node_modules
 /build
-/db_query.txt
+
+db_query.txt
 
 # Logs
 logs
