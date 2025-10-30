@@ -1,0 +1,13 @@
+[
+  {
+    "name": "default",
+    "type": "postgres",
+    "host": "ep-shiny-base-a8ax8ymg-pooler.eastus2.azure.neon.tech",
+    "port": 5432,
+    "username": "neondb_owner",
+    "password": "npg_okLKGmC94yPO",
+    "database": "",
+    "synchronize": false,
+    "entities": ["entities/*.js"]
+  }
+]
