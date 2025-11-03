@@ -1,11 +1,18 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { Role } from "./Role";
 
 @Index("UQ_386657905f0fdeabc53555beba3", ["email"], { unique: true })
 @Index("admin_pkey", ["id"], { unique: true })
 @Entity("admin", { schema: "public" })
 export class Admin {
-  @Column("integer", { primary: true, name: "id" })
+  @PrimaryGeneratedColumn({ type: "integer", name: "id" })
   id: number;
 
   @Column("character varying", { name: "first_name", length: 255 })

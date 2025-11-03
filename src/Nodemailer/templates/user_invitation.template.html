@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Welcome to Journey Go</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 100px 60px;
+        
+      }
+
+      .parentBody {
+        max-width: 600px;
+        margin: auto;
+        background-color: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        padding: 40px;
+        text-align: center;
+      }
+
+      .logo {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto 10px auto;
+      }
+
+      .logo-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 30px;
+      }
+
+      .email-header {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333333;
+      }
+
+      .email-body {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .button {
+        display: inline-block;
+        background-color: #873ea9;
+        color: #ffffff;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 15px;
+      }
+
+      @media (max-width: 600px) {
+        .parentBody {
+          padding: 20px;
+        }
+
+        .button {
+          padding: 10px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="parentBody">
+      <!-- Logo -->
+      <img
+        src="https://i.postimg.cc/hPdtcdrG/journeygo-logo.png"
+        alt="Company Logo"
+        class="logo"
+      />
+
+      <!-- Logo Title -->
+      <div class="logo-title">Car Lo</div>
+
+      <!-- Email Content -->
+      <div class="email-header">You've been added to Car Lo!</div>
+
+      <div class="email-body">
+        <p>Hi <strong>{{username}}</strong>,</p>
+        <p>
+          You’ve been added to the CarLo platform by an administrator.
+        </p>
+        <p>Your username is: <strong>{{userId}}</strong></p>
+        <p>Please click the button below to set your password and activate your account:</p>
+        <a href="{{setPasswordLink}}" class="button" style="color: #ffffff; background-color: black;" >Set Your Password</a>
+        <p>This link will expire in <strong>15 minutes</strong>.</p>
+        <br />
+        <p>Once your password is set, you can log in and start using the platform!</p>
+      </div>
+    </div>
+  </body>
+</html>

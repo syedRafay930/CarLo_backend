@@ -5,6 +5,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminAppModule } from './Admin/admin.app.module';
+import { MailModule } from './Nodemailer/mailer.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -32,6 +33,7 @@ import { AdminAppModule } from './Admin/admin.app.module';
       }),
     }),
     AdminAppModule,
+    MailModule,
   ],
 })
 export class AppModule {}
