@@ -7,10 +7,10 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { AuthModule } from '../Auth/auth.module';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { Admin } from 'src/entities/entities/Admin';
-import { Role } from 'src/entities/entities/Role';
+import { AdminRole } from 'src/entities/entities/AdminRole';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, Role]),
+    TypeOrmModule.forFeature([Admin, AdminRole]),
     JwtModule.register({}),
     RedisModule,
     MailModule,

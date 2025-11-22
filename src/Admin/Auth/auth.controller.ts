@@ -13,14 +13,14 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { JwtBlacklistGuard } from './guards/jwt.guard';
-//import { RBACService } from '../RBAC/rbac.service';
+import { RBACService } from '../RBAC/rbac.service';
 //import { FirebaseService } from 'src/firebase/firebase.service';
 
-@Controller('auth')
+@Controller('admin/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    //private readonly rbacService: RBACService,
+    private readonly rbacService: RBACService,
     //private readonly firebaseService: FirebaseService,
   ) {}
 
@@ -45,12 +45,6 @@ export class AuthController {
       //sidebar,
     };
   }
-  // @Get('test-redis')
-  // async testRedis() {
-  //   await this.redisService.setValue('test', 200, 60);
-  //   const value = await this.redisService.getValue('test');
-  //   return { success: true, value };
-  // }
 
   @Post('forgot-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {

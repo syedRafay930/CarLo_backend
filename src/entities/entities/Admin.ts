@@ -4,9 +4,14 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Role } from "./Role";
+import { AdminRole } from "./AdminRole";
+import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
+import { FleetManagerVehicles } from "./FleetManagerVehicles";
+import { FleetManagers } from "./FleetManagers";
+import { FleetManagersDocuments } from "./FleetManagersDocuments";
 
 @Index("UQ_386657905f0fdeabc53555beba3", ["email"], { unique: true })
 @Index("admin_pkey", ["id"], { unique: true })
@@ -48,7 +53,45 @@ export class Admin {
   @Column("timestamp without time zone", { name: "created_at", nullable: true })
   createdAt: Date | null;
 
-  @ManyToOne(() => Role, (role) => role.admins, { onDelete: "CASCADE" })
+  @ManyToOne(() => AdminRole, (adminRole) => adminRole.admins, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn([{ name: "role_id", referencedColumnName: "id" }])
-  role: Role;
+  role: AdminRole;
+
+  @OneToMany(
+    () => FleetManagerVehicleDocuments,
+    (fleetManagerVehicleDocuments) => fleetManagerVehicleDocuments.verifiedBy
+  )
+  fleetManagerVehicleDocuments: FleetManagerVehicleDocuments[];
+
+  @OneToMany(
+    () => FleetManagerVehicles,
+    (fleetManagerVehicles) => fleetManagerVehicles.approvedBy
+  )
+  fleetManagerVehicles: FleetManagerVehicles[];
+
+  @OneToMany(
+    () => FleetManagerVehicles,
+    (fleetManagerVehicles) => fleetManagerVehicles.createdBy
+  )
+  fleetManagerVehicles2: FleetManagerVehicles[];
+
+  @OneToMany(
+    () => FleetManagerVehicles,
+    (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
+  )
+  fleetManagerVehicles3: FleetManagerVehicles[];
+
+  @OneToMany(() => FleetManagers, (fleetManagers) => fleetManagers.createdBy)
+  fleetManagers: FleetManagers[];
+
+  @OneToMany(() => FleetManagers, (fleetManagers) => fleetManagers.updatedBy)
+  fleetManagers2: FleetManagers[];
+
+  @OneToMany(
+    () => FleetManagersDocuments,
+    (fleetManagersDocuments) => fleetManagersDocuments.verifiedBy
+  )
+  fleetManagersDocuments: FleetManagersDocuments[];
 }
