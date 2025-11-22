@@ -6,11 +6,12 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Admin } from "./Admin";
+import { RolePermissions } from "./RolePermissions";
 
 @Index("role_pkey", ["id"], { unique: true })
 @Index("role_name_key", ["name"], { unique: true })
-@Entity("role", { schema: "public" })
-export class Role {
+@Entity("admin_role", { schema: "public" })
+export class AdminRole {
   @PrimaryGeneratedColumn({ type: "integer", name: "id" })
   id: number;
 
@@ -25,4 +26,7 @@ export class Role {
 
   @OneToMany(() => Admin, (admin) => admin.role)
   admins: Admin[];
+
+  @OneToMany(() => RolePermissions, (rolePermissions) => rolePermissions.role)
+  rolePermissions: RolePermissions[];
 }

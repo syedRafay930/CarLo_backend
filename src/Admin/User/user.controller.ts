@@ -82,9 +82,7 @@ export class UsersController {
     @Query('status') status?: 'active' | 'inactive',
     @Query('search') search?: string,
   ) {
-
-    console.log(req.user)
-    
+        
     return this.usersService.getInternalUsersExcludingSelf(
       req.user.admin_id,
       req.user.admin_role,

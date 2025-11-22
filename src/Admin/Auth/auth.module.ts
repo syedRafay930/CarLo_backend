@@ -9,12 +9,12 @@ import { RedisService } from './redis.service';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { Admin } from 'src/entities/entities/Admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
-//import { RBACModule } from '../RBAC/rbac.module';
+import { RBACModule } from '../RBAC/rbac.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Admin]),
     UsersModule,
-    //forwardRef(() => RBACModule),
+    forwardRef(() => RBACModule),
     MailModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

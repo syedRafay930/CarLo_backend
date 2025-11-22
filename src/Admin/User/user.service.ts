@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../Auth/redis.service';
 import { Admin } from 'src/entities/entities/Admin';
-import { Role } from 'src/entities/entities/Role';
+import { AdminRole } from 'src/entities/entities/AdminRole';
 
 import { AddInternalUserDto } from './dto/add_internal_user.dto';
 import { EditInternalUserDto } from './dto/edit_internal_user.dto';
@@ -23,8 +23,8 @@ export class UsersService {
   constructor(
     @InjectRepository(Admin)
     private readonly usersRepository: Repository<Admin>,
-    @InjectRepository(Role)
-    private readonly rolesRepository: Repository<Role>,
+    @InjectRepository(AdminRole)
+    private readonly rolesRepository: Repository<AdminRole>,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
