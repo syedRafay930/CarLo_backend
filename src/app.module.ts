@@ -6,6 +6,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminAppModule } from './Admin/admin.app.module';
 import { MailModule } from './Nodemailer/mailer.module';
+import { CloudinaryModule } from './Cloudinary/cloudinary.module';
+import { FleetManagerAppModule } from './FleetManager/fleetmanager.app.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -34,6 +36,8 @@ import { MailModule } from './Nodemailer/mailer.module';
     }),
     AdminAppModule,
     MailModule,
+    CloudinaryModule,
+    FleetManagerAppModule
   ],
 })
 export class AppModule {}
