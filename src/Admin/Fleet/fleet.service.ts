@@ -22,6 +22,7 @@ import { AddRoleDto } from '../RBAC/dto/add_adminRole.dto';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
+import { EditFleetDto } from './dto/edit_fleet_.dto';
 
 @Injectable()
 export class FleetService {
@@ -176,8 +177,11 @@ export class FleetService {
     };
   }
 
-  async uploadDocuments(fleetManagerId: number,files: Express.Multer.File[],documentTypes: string[]) 
-  {
+  async uploadDocuments(
+    fleetManagerId: number,
+    files: Express.Multer.File[],
+    documentTypes: string[],
+  ) {
     const fleetManager = await this.fleetRepository.findOne({
       where: { id: fleetManagerId },
     });
@@ -202,5 +206,188 @@ export class FleetService {
     });
 
     return this.fleetDocumentRepository.save(documentEntities);
+  }
+
+  async getFilteredFleet(
+    page: number,
+    limit: number,
+    search?: string,
+    status?: 'active' | 'inactive',
+    plan?: string,
+    startDate?: string,
+    endDate?: string,
+    paymentStatus?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    // Build base where condition
+    const where: any = {};
+
+    if (search) {
+      where.company_name = ILike(`%${search}%`);
+    }
+
+    if (status === 'active') where.isActive = true;
+    else if (status === 'inactive') where.isActive = false;
+
+    if (startDate && endDate) {
+      where.created_at = Between(new Date(startDate), new Date(endDate));
+    }
+
+    //  Get base company list first (lightweight)
+    const [fleets, total] = await this.fleetRepository.findAndCount({
+      where,
+      skip,
+      take: limit,
+      order: { id: 'DESC' },
+    });
+
+    return {
+      data: fleets,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async editFleet(id: number, dto: EditFleetDto) {
+    const fleet = await this.fleetRepository.findOne({
+      where: { id: id },
+    });
+
+    if (!fleet) throw new NotFoundException('Company not found');
+
+    // Check if email already exists for another company
+    if (dto.fleet_email && dto.fleet_email !== fleet.email) {
+      const emailExists = await this.fleetRepository.findOne({
+        where: { email: dto.fleet_email },
+      });
+      if (emailExists) throw new ConflictException('Email already exists');
+    }
+
+    // Check if contact already exists for another company
+    if (dto.fleet_contact && dto.fleet_contact !== fleet.contact) {
+      const contactExists = await this.fleetRepository.findOne({
+        where: { contact: dto.fleet_contact },
+      });
+      if (contactExists)
+        throw new ConflictException('Contact number already exists');
+    }
+
+    if (dto.is_active !== undefined && dto.is_active !== fleet.isActive) {
+      const fleetUsers = await this.fleetUserRepository.find({
+        where: { fleetManager: { id: fleet.id } },
+      });
+
+      await Promise.all(
+        fleetUsers.map((user) =>
+          this.fleetUserRepository.update(
+            { id: user.id },
+            { isActive: dto.is_active },
+          ),
+        ),
+      );
+    }
+
+    // Update fields with fallback to existing values
+    const updated = Object.assign(fleet, {
+      name: dto.fleet_name ?? fleet.name,
+      contact: dto.fleet_contact ?? fleet.contact,
+      email: dto.fleet_email ?? fleet.email,
+      regNumber: dto.fleet_registration_number ?? fleet.regNumber,
+      address: dto.fleet_address ?? fleet.address,
+      city: dto.fleet_city ?? fleet.city,
+      state: dto.fleet_state ?? fleet.state,
+      country: dto.fleet_country ?? fleet.country,
+      is_active: dto.is_active ?? fleet.isActive,
+      is_delete: dto.is_delete ?? fleet.isDelete,
+    });
+
+    await this.fleetRepository.save(updated);
+    return updated;
+  }
+
+  async getAllFleetUsers(
+    fleetId: number,
+    page: number,
+    limit: number,
+    search?: string,
+    status?: 'active' | 'inactive',
+    role?: string,
+  ) {
+    const query = this.fleetUserRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.fmUsersRole', 'role')
+      .where('user.fleetManager.id = :fleetId', { fleetId });
+
+    // Status filtering
+    if (status) {
+      query.andWhere('user.isActive = :isActive', {
+        isActive: status === 'active',
+      });
+    }
+
+    //  Role name filtering
+    if (role) {
+      query.andWhere('role.roleName ILIKE :role', { role: `%${role}%` });
+    }
+
+    // Search (user_name, user_email, user_username)
+    if (search) {
+      query.andWhere(
+        `(
+          user.first_name ILIKE :search OR
+          user.last_name ILIKE :search OR
+          user.email ILIKE :search 
+        )`,
+        { search: `%${search}%` },
+      );
+    }
+
+    query.skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getAllFleetDocuments(
+    fleetId: number,
+    page: number,
+    limit: number,
+    search?: string,
+  ) {
+    const query = this.fleetDocumentRepository
+      .createQueryBuilder('document')
+      .where('document.fleetManager.id = :fleetId', { fleetId });
+
+    // Search (documentType)
+    if (search) {
+      query.andWhere(
+        `(
+          document.documentType ILIKE :search
+        )`,
+        { search: `%${search}%` },
+      );
+    }
+
+    query.skip((page - 1) * limit).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }
