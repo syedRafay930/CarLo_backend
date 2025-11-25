@@ -72,9 +72,10 @@ export class FleetManagers {
 
   @Column("timestamp without time zone", {
     name: "updated_at",
+    nullable: true,
     default: () => "now()",
   })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @OneToMany(
     () => FleetManagerSubscriptions,
