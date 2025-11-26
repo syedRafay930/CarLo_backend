@@ -39,7 +39,7 @@ export class FleetManagerUsers {
   dob: string | null;
 
   @Column("character varying", { name: "email", nullable: true, length: 255 })
-  email: string | null;
+  email: string;
 
   @Column("character varying", {
     name: "password",
@@ -69,6 +69,9 @@ export class FleetManagerUsers {
     default: () => "true",
   })
   isFirstlogin: boolean | null;
+
+  @Column("timestamp without time zone", { name: "deleted_at", nullable: true })
+  deletedAt: Date | null;
 
   @ManyToOne(
     () => FleetManagers,

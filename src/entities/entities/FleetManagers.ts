@@ -13,6 +13,7 @@ import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
 import { Admin } from "./Admin";
 import { FleetManagersDocuments } from "./FleetManagersDocuments";
+import { FmRolePermissions } from "./FmRolePermissions";
 
 @Index("fleet_managers_pkey", ["id"], { unique: true })
 @Entity("fleet_managers", { schema: "public" })
@@ -114,4 +115,10 @@ export class FleetManagers {
     (fleetManagersDocuments) => fleetManagersDocuments.fleetManager
   )
   fleetManagersDocuments: FleetManagersDocuments[];
+
+  @OneToMany(
+    () => FmRolePermissions,
+    (fmRolePermissions) => fmRolePermissions.fleet
+  )
+  fmRolePermissions: FmRolePermissions[];
 }
