@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { FleetManagerUsers } from "./FleetManagerUsers";
 import { FleetManagers } from "./FleetManagers";
+import { FmRolePermissions } from "./FmRolePermissions";
 
 @Index("fleet_manager_users_role_pkey", ["id"], { unique: true })
 @Entity("fleet_manager_users_role", { schema: "public" })
@@ -38,4 +39,10 @@ export class FleetManagerUsersRole {
   )
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
   fleetManager: FleetManagers;
+
+  @OneToMany(
+    () => FmRolePermissions,
+    (fmRolePermissions) => fmRolePermissions.role
+  )
+  fmRolePermissions: FmRolePermissions[];
 }
