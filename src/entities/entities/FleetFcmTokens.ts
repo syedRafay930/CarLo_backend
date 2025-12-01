@@ -1,0 +1,46 @@
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { FleetManagerUsers } from "./FleetManagerUsers";
+
+@Index("fleet_fcm_tokens_pkey", ["id"], { unique: true })
+@Index("client_fcm_tokens_token_key", ["token"], { unique: true })
+@Entity("fleet_fcm_tokens", { schema: "public" })
+export class FleetFcmTokens {
+  @PrimaryGeneratedColumn({ type: "integer", name: "id" })
+  id: number;
+
+  @Column("text", { name: "token", unique: true })
+  token: string;
+
+  @Column("character varying", { name: "platform", nullable: true, length: 20 })
+  platform: string | null;
+
+  @Column("boolean", { name: "is_active", default: () => "true" })
+  isActive: boolean;
+
+  @Column("timestamp without time zone", {
+    name: "created_at",
+    default: () => "now()",
+  })
+  createdAt: Date;
+
+  @Column("timestamp without time zone", {
+    name: "updated_at",
+    default: () => "now()",
+  })
+  updatedAt: Date;
+
+  @ManyToOne(
+    () => FleetManagerUsers,
+    (fleetManagerUsers) => fleetManagerUsers.fleetFcmTokens,
+    { onDelete: "CASCADE" }
+  )
+  @JoinColumn([{ name: "fleet_user_id", referencedColumnName: "id" }])
+  fleetUser: FleetManagerUsers;
+}
