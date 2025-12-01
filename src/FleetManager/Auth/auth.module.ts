@@ -27,6 +27,6 @@ import { FM_RBACModule } from '../RBAC/rbac.module';
   ],
   providers: [FMAuthService, FMJwtStrategy],
   controllers: [FMAuthController],
-  exports: [JwtModule, FMAuthService],
+  exports: [JwtModule, FMAuthService, FMJwtStrategy],
 })
 export class FMAuthModule {}

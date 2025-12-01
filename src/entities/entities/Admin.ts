@@ -71,17 +71,17 @@ export class Admin {
   )
   fleetManagerVehicles: FleetManagerVehicles[];
 
-  @OneToMany(
-    () => FleetManagerVehicles,
-    (fleetManagerVehicles) => fleetManagerVehicles.createdBy
-  )
-  fleetManagerVehicles2: FleetManagerVehicles[];
+  // @OneToMany(
+  //   () => FleetManagerVehicles,
+  //   (fleetManagerVehicles) => fleetManagerVehicles.createdBy
+  // )
+  // fleetManagerVehicles2: FleetManagerVehicles[];
 
-  @OneToMany(
-    () => FleetManagerVehicles,
-    (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
-  )
-  fleetManagerVehicles3: FleetManagerVehicles[];
+  // @OneToMany(
+  //   () => FleetManagerVehicles,
+  //   (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
+  // )
+  // fleetManagerVehicles3: FleetManagerVehicles[];
 
   @OneToMany(() => FleetManagers, (fleetManagers) => fleetManagers.createdBy)
   fleetManagers: FleetManagers[];

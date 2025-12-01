@@ -4,10 +4,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { FleetManagers } from "./FleetManagers";
 import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
+import { FleetManagerVehicles } from "./FleetManagerVehicles";
 
 @Index("fleet_manager_users_pkey", ["id"], { unique: true })
 @Entity("fleet_manager_users", { schema: "public" })
@@ -88,4 +90,16 @@ export class FleetManagerUsers {
   )
   @JoinColumn([{ name: "fm_users_role_id", referencedColumnName: "id" }])
   fmUsersRole: FleetManagerUsersRole;
+
+  @OneToMany(
+    () => FleetManagerVehicles,
+    (fleetManagerVehicles) => fleetManagerVehicles.createdBy
+  )
+  fleetManagerVehicles2: FleetManagerVehicles[];
+
+  @OneToMany(
+    () => FleetManagerVehicles,
+    (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
+  )
+  fleetManagerVehicles3: FleetManagerVehicles[];
 }

@@ -11,6 +11,7 @@ import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
 import { Admin } from "./Admin";
 import { FleetManagers } from "./FleetManagers";
 import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
+import { FleetManagerUsers } from "./FleetManagerUsers";
 
 @Index("fm_vehicles_chassis_number_key", ["chassisNumber"], { unique: true })
 @Index("fm_vehicles_pkey", ["id"], { unique: true })
@@ -88,7 +89,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  mileageKm: string | null;
+  mileageKm: number | null;
 
   @Column("enum", {
     name: "driver_service_option",
@@ -103,7 +104,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  selfDriveBaseRate: string | null;
+  selfDriveBaseRate: number | null;
 
   @Column("numeric", {
     name: "driver_included_rate",
@@ -111,7 +112,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  driverIncludedRate: string | null;
+  driverIncludedRate: number | null;
 
   @Column("integer", {
     name: "driver_hours_included",
@@ -133,7 +134,7 @@ export class FleetManagerVehicles {
     scale: 2,
     default: () => "250.00",
   })
-  lateReturnChargePerHour: string;
+  lateReturnChargePerHour: number;
 
   @Column("numeric", {
     name: "fuel_charge_per_km_if_empty",
@@ -141,7 +142,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  fuelChargePerKmIfEmpty: string | null;
+  fuelChargePerKmIfEmpty: number | null;
 
   @Column("numeric", {
     name: "latenight_offer_flat_fee",
@@ -149,7 +150,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  latenightOfferFlatFee: string | null;
+  latenightOfferFlatFee: number | null;
 
   @Column("boolean", { name: "is_insured", default: () => "false" })
   isInsured: boolean;
@@ -189,9 +190,10 @@ export class FleetManagerVehicles {
   @JoinColumn([{ name: "approved_by", referencedColumnName: "id" }])
   approvedBy: Admin;
 
-  @ManyToOne(() => Admin, (admin) => admin.fleetManagerVehicles2)
+ 
+  @ManyToOne(() => FleetManagerUsers, (fleetManagers) => fleetManagers.fleetManagerVehicles2)
   @JoinColumn([{ name: "created_by", referencedColumnName: "id" }])
-  createdBy: Admin;
+  createdBy: FleetManagerUsers;
 
   @ManyToOne(
     () => FleetManagers,
@@ -201,9 +203,9 @@ export class FleetManagerVehicles {
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
   fleetManager: FleetManagers;
 
-  @ManyToOne(() => Admin, (admin) => admin.fleetManagerVehicles3)
+  @ManyToOne(() => FleetManagerUsers, (fleetManager) => fleetManager.fleetManagerVehicles3)
   @JoinColumn([{ name: "updated_by", referencedColumnName: "id" }])
-  updatedBy: Admin;
+  updatedBy: FleetManagerUsers;
 
   @OneToMany(
     () => VehicleDynamicPricing,

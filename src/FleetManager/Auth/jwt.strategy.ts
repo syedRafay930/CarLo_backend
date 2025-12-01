@@ -16,9 +16,10 @@ export class FMJwtStrategy extends PassportStrategy(Strategy, 'fm-jwt') {
   async validate(payload: any) {
     return {
       fleet_email: payload.sub,
-      fleet_username: payload.first_name,
+      fleet_username: payload.name,
       fleet_role: payload.role,
-      fleet_id: payload.id,
+      fleet_user_id: payload.fleet_user_id,
+      fleet_id: payload.fleet_id
     };
   }
 }

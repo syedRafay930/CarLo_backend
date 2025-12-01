@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FleetService } from './fleet.service';
 import { FleetController } from './fleet.controller';
@@ -10,6 +10,7 @@ import { AuthModule } from '../Auth/auth.module';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { CloudinaryModule } from 'src/Cloudinary/cloudinary.module';
 import { CloudinaryProvider } from 'src/Cloudinary/cloudinary.provider';
+import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CloudinaryProvider } from 'src/Cloudinary/cloudinary.provider';
     ]),
     AuthModule,
     MailModule,
+    forwardRef(() => VehicleModule),
   ],
   controllers: [FleetController],
   providers: [FleetService, CloudinaryProvider],

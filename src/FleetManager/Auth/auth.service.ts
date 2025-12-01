@@ -31,7 +31,7 @@ export class FMAuthService {
       throw new UnauthorizedException('User is Deleted');
     }
 
-    if (user.isFirstlogin){
+    if (user.isFirstlogin) {
       throw new UnauthorizedException('Please set your password');
     }
 
@@ -56,9 +56,13 @@ export class FMAuthService {
   async generateJwtToken(user: any): Promise<string> {
     const payload = {
       sub: user.email,
-      name: (user.firstName || 'DefaultFirstName') + ' ' + (user.lastName || 'DefaultLastName'),
+      name:
+        (user.firstName || 'DefaultFirstName') +
+        ' ' +
+        (user.lastName || 'DefaultLastName'),
       role: user.fmUsersRole.id,
-      fleet_id: user.id,
+      fleet_user_id: user.id,
+      fleet_id: user.fleetManager.id,
     };
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
@@ -69,8 +73,8 @@ export class FMAuthService {
   async forgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new UnauthorizedException('User not found');
-    if(!user.firstName) throw new UnauthorizedException('User first name not found');
-
+    if (!user.firstName)
+      throw new UnauthorizedException('User first name not found');
 
     const token = this.jwtService.sign(
       { sub: user.email },
@@ -114,7 +118,13 @@ export class FMAuthService {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
-    await this.usersService.updatePassword(userEmail, hashedPassword);
+
+    const user = await this.usersService.findByEmail(userEmail);
+    if (user?.isFirstlogin === false) {
+      await this.usersService.updateLoginStatus(userEmail, hashedPassword);
+    } else {
+      await this.usersService.updatePassword(userEmail, hashedPassword);
+    }
     await this.redisService.deleteValue(`forgot:${token}`);
 
     return { message: 'Password has been reset successfully' };
