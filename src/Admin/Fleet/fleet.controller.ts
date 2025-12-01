@@ -24,10 +24,14 @@ import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { UploadedFiles } from '@nestjs/common';
 import { UploadDocumentsDto } from './dto/upload_documents.dto';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
+import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
 
 @Controller('admin/fleet')
 export class FleetController {
-  constructor(private fleetService: FleetService) {}
+  constructor(
+    private fleetService: FleetService,
+    private vehicleService: VehicleService,
+  ) {}
 
   @UseGuards(JwtBlacklistGuard)
   @Post('add')
@@ -135,4 +139,49 @@ export class FleetController {
     return this.fleetService.getAllFleetDocuments(id, +page, +limit, search);
   }
 
+  @UseGuards(JwtBlacklistGuard)
+  @Get('getVehiclesByFleet/:id')
+  async getAllVehiclesByFM(
+    @Param('id') id: number,
+    @Query('page') page: 1,
+    @Query('limit') limit: 10,
+    @Query('status') status?: string,
+    @Query('isApprovedByAdmin') isApprovedByAdmin?: boolean,
+    @Query('driverOption') driverServiceOption?: string,
+    @Query('search') search?: string,
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+  ) {
+    return this.vehicleService.getAllVehiclesByFM(
+      id,
+      page,
+      limit,
+      status,
+      isApprovedByAdmin,
+      driverServiceOption,
+      search,
+      sortOrder,
+    );
+  }
+
+  @UseGuards(JwtBlacklistGuard)
+  @Get('getAlldocuments/:FMId/:vehicleId')
+  async getAllDocsByVehicleId(
+    @Param('FMId') fmId: number,
+    @Param('vehicleId') vehicleId: number,
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('verificationStatus') verificationStatus: string,
+    @Query('search') search: string,
+    @Query('sortOrder') sortOrder: 'ASC' | 'DESC',
+  ) {
+    return this.vehicleService.getAllDocsByVehicleId(
+      fmId,
+      vehicleId,
+      page,
+      limit,
+      verificationStatus,
+      search,
+      sortOrder,
+    );
+  }
 }

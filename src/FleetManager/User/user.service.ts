@@ -34,7 +34,7 @@ export class FMUsersService {
   async findByEmail(email: string): Promise<FleetManagerUsers | null> {
     return this.usersRepository.findOne({
       where: { email: email },
-      relations: ['fmUsersRole'],
+      relations: ['fmUsersRole', 'fleetManager'],
     });
   }
 
@@ -47,6 +47,24 @@ export class FMUsersService {
       await this.usersRepository.update(
         { email: userEmail },
         { password: newPassword },
+      );
+    }
+  }
+
+  async updateLoginStatus(userEmail: string, password: string): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { email: userEmail },
+    });
+
+    if (user) {
+      await this.usersRepository.update(
+        { email: userEmail },
+        {
+          isFirstlogin: false,
+          password: password,
+          isActive: true,
+          invitedAt: null,
+        },
       );
     }
   }
