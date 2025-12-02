@@ -55,6 +55,7 @@ export class VehicleService {
       isInsured: createVehicleDto.isInsured,
       vehicleStatus: createVehicleDto.vehicleStatus,
       isApprovedByAdmin: false,
+      approvalStatus: 'Available',
       isDeleted: false,
       createdAt: new Date(),
       fleetManager: { id: fmId },
@@ -138,6 +139,7 @@ export class VehicleService {
     limit: number = 10,
     status?: string,
     isApprovedByAdmin?: boolean,
+    approvalStatus?: string,
     driverServiceOption?: string,
     search?: string,
     sortOrder: 'ASC' | 'DESC' = 'DESC',
@@ -148,6 +150,13 @@ export class VehicleService {
     const queryBuilder = this.vehiclesRepository
       .createQueryBuilder('vehicle')
       .where('vehicle.fleetManager.id = :fmId', { fmId });
+
+    queryBuilder.leftJoinAndSelect(
+      'vehicle.fleetManagerVehicleDocuments',
+      'coverImage',
+      'coverImage.docType = :docType',
+      { docType: 'image_coverimg' },
+    );
 
     if (status) {
       queryBuilder.andWhere('vehicle.vehicleStatus = :status', { status });
@@ -167,6 +176,12 @@ export class VehicleService {
       });
     }
 
+    if (approvalStatus) {
+      queryBuilder.andWhere('vehicle.approvalStatus = :approvalStatus', {
+        approvalStatus,
+      });
+    }
+
     if (search) {
       queryBuilder.andWhere(
         '(vehicle.make ILIKE :search OR vehicle.model ILIKE :search OR vehicle.licensePlate ILIKE :search)',
@@ -177,9 +192,16 @@ export class VehicleService {
     queryBuilder.orderBy('vehicle.createdAt', sortOrder).skip(skip).take(limit);
 
     const [data, total] = await queryBuilder.getManyAndCount();
+    const cleanedData = data.map((vehicle) => {
+      const coverImage = vehicle.fleetManagerVehicleDocuments?.[0]?.documentUrl || null;
+      return {
+        ...vehicle,
+        coverImageUrl: coverImage,
+      };
+    });
 
     return {
-      data,
+      data: cleanedData,
       total,
       page,
       limit,
@@ -208,8 +230,8 @@ export class VehicleService {
     }
     const queryBuilder = this.documentRepository
       .createQueryBuilder('document')
-      .where('document.vehicle.id = :vehicleId', { vehicleId }) 
-      .leftJoinAndSelect('document.verifiedBy', 'admin') 
+      .where('document.vehicle.id = :vehicleId', { vehicleId })
+      .leftJoinAndSelect('document.verifiedBy', 'admin')
       .orderBy('document.createdAt', sortOrder);
 
     if (verificationStatus) {

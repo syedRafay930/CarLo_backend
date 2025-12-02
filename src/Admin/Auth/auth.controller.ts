@@ -14,14 +14,14 @@ import { ForgotPasswordDto } from './dto/forgot_password.dto';
 import { ResetPasswordDto } from './dto/reset_password.dto';
 import { JwtBlacklistGuard } from './guards/jwt.guard';
 import { RBACService } from '../RBAC/rbac.service';
-//import { FirebaseService } from 'src/firebase/firebase.service';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Controller('admin/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly rbacService: RBACService,
-    //private readonly firebaseService: FirebaseService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   @Post('login')
@@ -67,6 +67,7 @@ export class AuthController {
     }
 
     await this.authService.logout(token);
+    await this.firebaseService.deleteAdminFcmToken(req.user.admin_id);
     return { message: 'Logout successful' };
   }
 }

@@ -8,6 +8,7 @@ import { AdminAppModule } from './Admin/admin.app.module';
 import { MailModule } from './Nodemailer/mailer.module';
 import { CloudinaryModule } from './Cloudinary/cloudinary.module';
 import { FleetManagerAppModule } from './FleetManager/fleetmanager.app.module';
+import { FirebaseModule } from './firebase/firebase.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -37,7 +38,8 @@ import { FleetManagerAppModule } from './FleetManager/fleetmanager.app.module';
     AdminAppModule,
     MailModule,
     CloudinaryModule,
-    FleetManagerAppModule
+    FleetManagerAppModule,
+    FirebaseModule,
   ],
 })
 export class AppModule {}

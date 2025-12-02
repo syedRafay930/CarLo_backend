@@ -10,11 +10,13 @@ import { MailModule } from 'src/Nodemailer/mailer.module';
 import { Admin } from 'src/entities/entities/Admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RBACModule } from '../RBAC/rbac.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Admin]),
     UsersModule,
     forwardRef(() => RBACModule),
+    forwardRef(() => FirebaseModule),
     MailModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

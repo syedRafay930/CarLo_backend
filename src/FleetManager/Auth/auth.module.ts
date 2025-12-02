@@ -10,6 +10,7 @@ import { MailModule } from 'src/Nodemailer/mailer.module';
 import { FleetManagerUsers } from 'src/entities/entities/FleetManagerUsers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FM_RBACModule } from '../RBAC/rbac.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([FleetManagerUsers]),
@@ -17,6 +18,7 @@ import { FM_RBACModule } from '../RBAC/rbac.module';
     AuthModule,
     forwardRef(() => FM_RBACModule),
     forwardRef(() => FMUsersModule),
+    forwardRef(() => FirebaseModule),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

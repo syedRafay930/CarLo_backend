@@ -26,5 +26,6 @@ import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
   ],
   controllers: [FleetController],
   providers: [FleetService, CloudinaryProvider],
+  exports: [FleetService],
 })
 export class FleetModule {}

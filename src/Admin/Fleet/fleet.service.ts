@@ -23,6 +23,7 @@ import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
+import { get } from 'http';
 
 @Injectable()
 export class FleetService {
@@ -42,6 +43,14 @@ export class FleetService {
     private mailService: MailService,
     private dataSource: DataSource,
   ) {}
+
+
+  async getFleetById(fleetId: number){
+    const fleet = await this.fleetRepository.findOne({
+      where: { id: fleetId },
+    });
+    return fleet;
+  }
 
   async addFleetWithUser(dto: AddFleetWithUserDto) {
     const queryRunner = this.dataSource.createQueryRunner();
