@@ -12,6 +12,7 @@ import { Admin } from "./Admin";
 import { FleetManagers } from "./FleetManagers";
 import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
 import { FleetManagerUsers } from "./FleetManagerUsers";
+import { Requests } from "./Requests";
 
 @Index("fm_vehicles_chassis_number_key", ["chassisNumber"], { unique: true })
 @Index("fm_vehicles_pkey", ["id"], { unique: true })
@@ -180,6 +181,9 @@ export class FleetManagerVehicles {
   })
   updatedAt: Date;
 
+  @Column("character varying", { name: "approval_status", length: 255 })
+  approvalStatus: string | null;
+
   @OneToMany(
     () => FleetManagerVehicleDocuments,
     (fleetManagerVehicleDocuments) => fleetManagerVehicleDocuments.vehicle
@@ -191,7 +195,7 @@ export class FleetManagerVehicles {
   approvedBy: Admin;
 
  
-  @ManyToOne(() => FleetManagerUsers, (fleetManagers) => fleetManagers.fleetManagerVehicles2)
+  @ManyToOne(() => FleetManagerUsers, (fleetManagers) => fleetManagers.fleetManagerVehicles)
   @JoinColumn([{ name: "created_by", referencedColumnName: "id" }])
   createdBy: FleetManagerUsers;
 
@@ -203,9 +207,12 @@ export class FleetManagerVehicles {
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
   fleetManager: FleetManagers;
 
-  @ManyToOne(() => FleetManagerUsers, (fleetManager) => fleetManager.fleetManagerVehicles3)
+  @ManyToOne(() => FleetManagerUsers, (fleetManager) => fleetManager.fleetManagerVehicles2)
   @JoinColumn([{ name: "updated_by", referencedColumnName: "id" }])
   updatedBy: FleetManagerUsers;
+
+  @OneToMany(() => Requests, (requests) => requests.vehicle)
+  requests: Requests[];
 
   @OneToMany(
     () => VehicleDynamicPricing,

@@ -8,10 +8,14 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { AdminRole } from "./AdminRole";
+import { AdminFcmTokens } from "./AdminFcmTokens";
+import { AdminNotifications } from "./AdminNotifications";
 import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
 import { FleetManagers } from "./FleetManagers";
 import { FleetManagersDocuments } from "./FleetManagersDocuments";
+import { FleetNotifications } from "./FleetNotifications";
+import { Requests } from "./Requests";
 
 @Index("UQ_386657905f0fdeabc53555beba3", ["email"], { unique: true })
 @Index("admin_pkey", ["id"], { unique: true })
@@ -59,6 +63,15 @@ export class Admin {
   @JoinColumn([{ name: "role_id", referencedColumnName: "id" }])
   role: AdminRole;
 
+  @OneToMany(() => AdminFcmTokens, (adminFcmTokens) => adminFcmTokens.admin)
+  adminFcmTokens: AdminFcmTokens[];
+
+  @OneToMany(
+    () => AdminNotifications,
+    (adminNotifications) => adminNotifications.receiver
+  )
+  adminNotifications: AdminNotifications[];
+
   @OneToMany(
     () => FleetManagerVehicleDocuments,
     (fleetManagerVehicleDocuments) => fleetManagerVehicleDocuments.verifiedBy
@@ -71,18 +84,6 @@ export class Admin {
   )
   fleetManagerVehicles: FleetManagerVehicles[];
 
-  // @OneToMany(
-  //   () => FleetManagerVehicles,
-  //   (fleetManagerVehicles) => fleetManagerVehicles.createdBy
-  // )
-  // fleetManagerVehicles2: FleetManagerVehicles[];
-
-  // @OneToMany(
-  //   () => FleetManagerVehicles,
-  //   (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
-  // )
-  // fleetManagerVehicles3: FleetManagerVehicles[];
-
   @OneToMany(() => FleetManagers, (fleetManagers) => fleetManagers.createdBy)
   fleetManagers: FleetManagers[];
 
@@ -94,4 +95,13 @@ export class Admin {
     (fleetManagersDocuments) => fleetManagersDocuments.verifiedBy
   )
   fleetManagersDocuments: FleetManagersDocuments[];
+
+  @OneToMany(
+    () => FleetNotifications,
+    (fleetNotifications) => fleetNotifications.sender
+  )
+  fleetNotifications: FleetNotifications[];
+
+  @OneToMany(() => Requests, (requests) => requests.adminRespondedBy)
+  requests: Requests[];
 }

@@ -7,9 +7,13 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { AdminNotifications } from "./AdminNotifications";
+import { FleetFcmTokens } from "./FleetFcmTokens";
 import { FleetManagers } from "./FleetManagers";
 import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
+import { FleetNotifications } from "./FleetNotifications";
+import { Requests } from "./Requests";
 
 @Index("fleet_manager_users_pkey", ["id"], { unique: true })
 @Entity("fleet_manager_users", { schema: "public" })
@@ -75,6 +79,15 @@ export class FleetManagerUsers {
   @Column("timestamp without time zone", { name: "deleted_at", nullable: true })
   deletedAt: Date | null;
 
+  @OneToMany(
+    () => AdminNotifications,
+    (adminNotifications) => adminNotifications.sender
+  )
+  adminNotifications: AdminNotifications[];
+
+  @OneToMany(() => FleetFcmTokens, (fleetFcmTokens) => fleetFcmTokens.fleetUser)
+  fleetFcmTokens: FleetFcmTokens[];
+
   @ManyToOne(
     () => FleetManagers,
     (fleetManagers) => fleetManagers.fleetManagerUsers,
@@ -95,11 +108,20 @@ export class FleetManagerUsers {
     () => FleetManagerVehicles,
     (fleetManagerVehicles) => fleetManagerVehicles.createdBy
   )
-  fleetManagerVehicles2: FleetManagerVehicles[];
+  fleetManagerVehicles: FleetManagerVehicles[];
 
   @OneToMany(
     () => FleetManagerVehicles,
     (fleetManagerVehicles) => fleetManagerVehicles.updatedBy
   )
-  fleetManagerVehicles3: FleetManagerVehicles[];
+  fleetManagerVehicles2: FleetManagerVehicles[];
+
+  @OneToMany(
+    () => FleetNotifications,
+    (fleetNotifications) => fleetNotifications.receiver
+  )
+  fleetNotifications: FleetNotifications[];
+
+  @OneToMany(() => Requests, (requests) => requests.fleetUser)
+  requests: Requests[];
 }
