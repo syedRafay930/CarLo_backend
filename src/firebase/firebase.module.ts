@@ -8,12 +8,17 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { forwardRef } from '@nestjs/common';
 import { FirebaseController } from './firebase.controller';
+import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
+import { UsersModule } from 'src/Admin/User/user.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       AdminFcmTokens,
-      FleetFcmTokens
-    ])],
+      FleetFcmTokens,
+      AdminNotifications
+    ]),
+    forwardRef(() => UsersModule),
+  ],
   providers: [
     {
       provide: 'FIREBASE_ADMIN',

@@ -8,19 +8,18 @@ import {
   Patch,
   Request,
 } from '@nestjs/common';
-import { FMAuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { ForgotPasswordDto } from './dto/forgot_password.dto';
-import { ResetPasswordDto } from './dto/reset_password.dto';
-import { FMJwtBlacklistGuard } from './guards/jwt.guard';
-import { FM_RBACService } from '../RBAC/rbac.service';
+import { ClientAuthService } from './auth.service';
+import { LoginDto } from 'src/Admin/Auth/dto/login.dto';
+import { ForgotPasswordDto } from 'src/Admin/Auth/dto/forgot_password.dto';
+import { ResetPasswordDto } from 'src/Admin/Auth/dto/reset_password.dto';
+import { ClientJwtBlacklistGuard } from './guards/jwt.guard';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { SignUpDto } from './dto/sign_up.dto';
 
-@Controller('fm/auth')
-export class FMAuthController {
+@Controller('client/auth')
+export class ClientAuthController {
   constructor(
-    private readonly authService: FMAuthService,
-    private readonly rbacService: FM_RBACService,
+    private readonly authService: ClientAuthService,
     private readonly firebaseService: FirebaseService,
   ) {}
 
@@ -46,6 +45,11 @@ export class FMAuthController {
     };
   }
 
+  @Post('sign-up')
+  async signUp(@Body() signUpDto: SignUpDto) {
+    return this.authService.signUp(signUpDto);
+  }
+
   @Post('forgot-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     const { email } = forgotPasswordDto;
@@ -58,7 +62,7 @@ export class FMAuthController {
     return this.authService.resetPassword(token, newPassword);
   }
 
-  @UseGuards(FMJwtBlacklistGuard)
+  @UseGuards(ClientJwtBlacklistGuard)
   @Post('logout')
   async logout(@Request() req) {
     const token = req.headers.authorization?.split(' ')[1];
@@ -67,7 +71,7 @@ export class FMAuthController {
     }
 
     await this.authService.logout(token);
-    await this.firebaseService.deleteFleetFcmToken(req.user.fleet_user_id);
+    //await this.firebaseService.deleteFleetFcmToken(req.user.fleet_user_id);
     return { message: 'Logout successful' };
   }
 }

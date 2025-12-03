@@ -55,6 +55,7 @@ export class VehicleService {
       isInsured: createVehicleDto.isInsured,
       vehicleStatus: createVehicleDto.vehicleStatus,
       isApprovedByAdmin: false,
+      approvalStatus: 'Available',
       isDeleted: false,
       createdAt: new Date(),
       fleetManager: { id: fmId },
@@ -134,20 +135,43 @@ export class VehicleService {
 
   async getAllVehiclesByFM(
     fmId: number,
-    page: number = 1,
-    limit: number = 10,
+    page: number,
+    limit: number,
+    make?: string,
     status?: string,
     isApprovedByAdmin?: boolean,
+    approvalStatus?: string,
     driverServiceOption?: string,
     search?: string,
     sortOrder: 'ASC' | 'DESC' = 'DESC',
+    minPrice?: number,
+    maxPrice?: number,
+    vehicleType?: string,
+    color?: string,
+    seatingCapacity?: number,
+    fuelType?: string,
+    pricingModel?: string,
   ) {
-    const skip = (page - 1) * limit;
+    const parsedPage = Number(page) || 1;
+    const parsedLimit = Number(limit) || 10;
+    const safePage = Math.max(1, Math.floor(parsedPage));
+    const safeLimit = Math.max(1, Math.floor(parsedLimit));
+    const skip = (safePage - 1) * safeLimit;
 
-    // 1. Base QueryBuilder
     const queryBuilder = this.vehiclesRepository
       .createQueryBuilder('vehicle')
       .where('vehicle.fleetManager.id = :fmId', { fmId });
+
+    queryBuilder.leftJoinAndSelect(
+      'vehicle.fleetManagerVehicleDocuments',
+      'coverImage',
+      'coverImage.docType = :docType',
+      { docType: 'image_coverimg' },
+    );
+
+    if (make) {
+      queryBuilder.andWhere('vehicle.make ILIKE :make', { make: `%${make}%` });
+    }
 
     if (status) {
       queryBuilder.andWhere('vehicle.vehicleStatus = :status', { status });
@@ -167,6 +191,12 @@ export class VehicleService {
       });
     }
 
+    if (approvalStatus) {
+      queryBuilder.andWhere('vehicle.approvalStatus = :approvalStatus', {
+        approvalStatus,
+      });
+    }
+
     if (search) {
       queryBuilder.andWhere(
         '(vehicle.make ILIKE :search OR vehicle.model ILIKE :search OR vehicle.licensePlate ILIKE :search)',
@@ -174,16 +204,66 @@ export class VehicleService {
       );
     }
 
+    // NEW FILTERS:
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('vehicle.selfDriveBaseRate >= :minPrice', {
+        minPrice,
+      });
+    }
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('vehicle.selfDriveBaseRate <= :maxPrice', {
+        maxPrice,
+      });
+    }
+
+    if (vehicleType) {
+      queryBuilder.andWhere('vehicle.vehicleType = :vehicleType', {
+        vehicleType,
+      });
+    }
+
+    if (color) {
+      queryBuilder.andWhere('vehicle.color ILIKE :color', {
+        color: `%${color}%`,
+      });
+    }
+
+    if (seatingCapacity !== undefined) {
+      queryBuilder.andWhere('vehicle.seatingCapacity >= :seatingCapacity', {
+        seatingCapacity,
+      });
+    }
+
+    if (fuelType) {
+      queryBuilder.andWhere('vehicle.fuelType = :fuelType', { fuelType });
+    }
+
+    if (pricingModel) {
+      queryBuilder.andWhere('vehicle.pricingModel = :pricingModel', {
+        pricingModel,
+      });
+    }
+
     queryBuilder.orderBy('vehicle.createdAt', sortOrder).skip(skip).take(limit);
 
     const [data, total] = await queryBuilder.getManyAndCount();
 
+    const cleanedData = data.map((vehicle) => {
+      const coverImage =
+        (vehicle as any).fleetManagerVehicleDocuments?.[0]?.documentUrl || null;
+      return {
+        ...vehicle,
+        coverImageUrl: coverImage,
+        fleetManagerVehicleDocuments: undefined,
+      };
+    });
+
     return {
-      data,
+      data: cleanedData,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
     };
   }
 
@@ -208,8 +288,8 @@ export class VehicleService {
     }
     const queryBuilder = this.documentRepository
       .createQueryBuilder('document')
-      .where('document.vehicle.id = :vehicleId', { vehicleId }) 
-      .leftJoinAndSelect('document.verifiedBy', 'admin') 
+      .where('document.vehicle.id = :vehicleId', { vehicleId })
+      .leftJoinAndSelect('document.verifiedBy', 'admin')
       .orderBy('document.createdAt', sortOrder);
 
     if (verificationStatus) {
@@ -235,6 +315,47 @@ export class VehicleService {
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getVehicleById(vehicleId: number) {
+    const desiredDocTypes = [
+      'image_coverimg',
+      'image_exterior_front',
+      'image_exterior_back',
+      'image_interior',
+    ];
+
+    const queryBuilder = this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .where('vehicle.id = :vehicleId', { vehicleId })
+      .leftJoinAndSelect('vehicle.fleetManager', 'fm', 'fm.isDelete = false')
+      .leftJoinAndSelect(
+        'vehicle.fleetManagerVehicleDocuments',
+        'images',
+        'images.docType IN (:...docTypes)',
+        { docTypes: desiredDocTypes },
+      )
+      //.andWhere('vehicle.isApprovedByAdmin = true')
+      .andWhere('vehicle.vehicleStatus = :status', { status: 'available' });
+
+    const vehicle = await queryBuilder.getOne();
+
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with ID ${vehicleId} not found.`);
+    }
+
+    const images = (vehicle.fleetManagerVehicleDocuments || []).map((doc) => ({
+      type: doc.docType,
+      url: doc.documentUrl,
+    }));
+
+    return {
+      ...vehicle,
+      fleetManagerName: vehicle.fleetManager.name,
+      images: images,
+      fleetManager: undefined,
+      fleetManagerVehicleDocuments: undefined,
     };
   }
 }

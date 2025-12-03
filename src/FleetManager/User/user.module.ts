@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FMUsersService } from './user.service';
-//import { UsersController } from './user.controller';
+import { FMUsersController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { FMAuthModule } from '../Auth/auth.module';
@@ -20,6 +20,6 @@ import { AuthModule } from 'src/Admin/Auth/auth.module';
   ],
   providers: [FMUsersService],
   exports: [FMUsersService, TypeOrmModule],
-  //controllers: [UsersController],
+  controllers: [FMUsersController],
 })
 export class FMUsersModule {}

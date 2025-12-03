@@ -20,7 +20,7 @@ import { FMAuthService } from '../Auth/auth.service';
 //import { Audit } from '../admin-logs/admin-logs.decorators';
 
 @Controller('fm/users')
-export class UsersController {
+export class FMUsersController {
   constructor(
     private readonly usersService: FMUsersService,
     private readonly authService: FMAuthService,

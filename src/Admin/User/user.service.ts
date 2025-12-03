@@ -18,6 +18,7 @@ import { AddInternalUserDto } from './dto/add_internal_user.dto';
 import { EditInternalUserDto } from './dto/edit_internal_user.dto';
 import { MailService } from 'src/Nodemailer/mailer.service';
 import { ILike } from 'typeorm';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -50,6 +51,14 @@ export class UsersService {
         { hashedPassword: newPassword },
       );
     }
+  }
+
+  async getAdminIds(): Promise<number[]> {
+    const admins = await this.usersRepository.find({
+      select: ['id'],
+      where: [{ role: { id: 1 } } ],
+    });
+    return admins.map((a) => a.id);
   }
 
   async createInternalUser(dto: AddInternalUserDto) {
