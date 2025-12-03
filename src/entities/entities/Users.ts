@@ -2,10 +2,13 @@ import {
   Column,
   Entity,
   Index,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { Bookings } from "./Bookings";
 import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
+import { VehicleRatings } from "./VehicleRatings";
 
 @Index("users_pkey", ["id"], { unique: true })
 @Entity("users", { schema: "public" })
@@ -59,9 +62,15 @@ export class Users {
   })
   profilePic: string | null;
 
+  @OneToMany(() => Bookings, (bookings) => bookings.user)
+  bookings: Bookings[];
+
   @OneToOne(
     () => UserFavoriteVehicles,
     (userFavoriteVehicles) => userFavoriteVehicles.user
   )
   userFavoriteVehicles: UserFavoriteVehicles;
+
+  @OneToMany(() => VehicleRatings, (vehicleRatings) => vehicleRatings.user)
+  vehicleRatings: VehicleRatings[];
 }

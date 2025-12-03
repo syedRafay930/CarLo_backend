@@ -8,12 +8,14 @@ import { VehicleService } from './vehicle.service';
 import { AuthModule } from 'src/Admin/Auth/auth.module';
 import { FMAuthModule } from '../Auth/auth.module';
 import { CloudinaryModule } from 'src/Cloudinary/cloudinary.module';
+import { VehicleRatings } from 'src/entities/entities/VehicleRatings';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       FleetManagerVehicles,
       FleetManagerVehicleDocuments,
       VehicleDynamicPricing,
+      VehicleRatings,
     ]),
     FMAuthModule,
     AuthModule,
