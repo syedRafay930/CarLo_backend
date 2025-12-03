@@ -4,10 +4,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
+import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
 import { Admin } from "./Admin";
 import { FleetManagers } from "./FleetManagers";
 import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
@@ -213,6 +215,12 @@ export class FleetManagerVehicles {
 
   @OneToMany(() => Requests, (requests) => requests.vehicle)
   requests: Requests[];
+
+  @OneToOne(
+    () => UserFavoriteVehicles,
+    (userFavoriteVehicles) => userFavoriteVehicles.vehicle
+  )
+  userFavoriteVehicles: UserFavoriteVehicles;
 
   @OneToMany(
     () => VehicleDynamicPricing,

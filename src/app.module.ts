@@ -8,6 +8,7 @@ import { AdminAppModule } from './Admin/admin.app.module';
 import { MailModule } from './Nodemailer/mailer.module';
 import { CloudinaryModule } from './Cloudinary/cloudinary.module';
 import { FleetManagerAppModule } from './FleetManager/fleetmanager.app.module';
+import { ClientAppModule } from './Client/client.app.module';
 import { FirebaseModule } from './firebase/firebase.module';
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     CloudinaryModule,
     FleetManagerAppModule,
     FirebaseModule,
+    ClientAppModule,
   ],
 })
 export class AppModule {}
