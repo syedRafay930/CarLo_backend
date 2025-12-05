@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { Bookings } from "./Bookings";
 import { FleetManagerSubscriptions } from "./FleetManagerSubscriptions";
 import { FleetManagerUsers } from "./FleetManagerUsers";
 import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
@@ -78,6 +79,9 @@ export class FleetManagers {
     default: () => "now()",
   })
   updatedAt: Date | null;
+
+  @OneToMany(() => Bookings, (bookings) => bookings.fleetManager)
+  bookings: Bookings[];
 
   @OneToMany(
     () => FleetManagerSubscriptions,

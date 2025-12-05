@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
 import { FleetManagerVehicleDocuments } from 'src/entities/entities/FleetManagerVehicleDocuments';
+import { VehicleRatings } from 'src/entities/entities/VehicleRatings';
 import { CreateVehicleDto } from './dto/create_vehicle.dto';
 import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { VehicleDocumentType } from './dto/upload_vehicle_documents.dto';
@@ -21,6 +22,9 @@ export class VehicleService {
 
     @InjectRepository(FleetManagerVehicleDocuments)
     private documentRepository: Repository<FleetManagerVehicleDocuments>,
+
+    @InjectRepository(VehicleRatings)
+    private vehicleRatingsRepository: Repository<VehicleRatings>,
     // private subscriptionService: SubscriptionService,
   ) {}
 
@@ -169,6 +173,8 @@ export class VehicleService {
       { docType: 'image_coverimg' },
     );
 
+    queryBuilder.leftJoinAndSelect('vehicle.vehicleRatings', 'rating');
+
     if (make) {
       queryBuilder.andWhere('vehicle.make ILIKE :make', { make: `%${make}%` });
     }
@@ -249,12 +255,21 @@ export class VehicleService {
     const [data, total] = await queryBuilder.getManyAndCount();
 
     const cleanedData = data.map((vehicle) => {
-      const coverImage =
-        (vehicle as any).fleetManagerVehicleDocuments?.[0]?.documentUrl || null;
+      const vehicleWithRelations = vehicle as any;
+      const coverImage = vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl || null;
+
+      const ratingsArray = vehicleWithRelations.vehicleRatings || [];
+      const totalRatingSum = ratingsArray.reduce((sum, review) => sum + review.rating, 0);
+      const reviewCount = ratingsArray.length;
+      const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
+
       return {
         ...vehicle,
         coverImageUrl: coverImage,
+        averageRating: parseFloat(averageRating.toFixed(1)),
+        reviewCount: reviewCount,
         fleetManagerVehicleDocuments: undefined,
+        vehicleRatings: undefined,
       };
     });
 
@@ -336,6 +351,8 @@ export class VehicleService {
         'images.docType IN (:...docTypes)',
         { docTypes: desiredDocTypes },
       )
+      .leftJoinAndSelect('vehicle.vehicleRatings', 'rating')
+      .leftJoinAndSelect('rating.user', 'user')
       //.andWhere('vehicle.isApprovedByAdmin = true')
       .andWhere('vehicle.vehicleStatus = :status', { status: 'available' });
 
@@ -350,12 +367,63 @@ export class VehicleService {
       url: doc.documentUrl,
     }));
 
+    const recentRatings = (vehicle.vehicleRatings || []).slice(0, 2); // Get only the first 2 reviews
+
+    const rating = recentRatings.map((rev) => ({
+      name: rev.user?.firstName + ' ' + rev.user?.lastName,
+      rating: rev.rating,
+      comment: rev.comment,
+      createdAt: rev.createdAt,
+    }));
+
+    const ratingsArray = vehicle.vehicleRatings || [];
+    const totalRatingSum = ratingsArray.reduce((sum, review) => sum + (review.rating ?? 0), 0);
+    const reviewCount = ratingsArray.length;
+    const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
+
+
     return {
       ...vehicle,
       fleetManagerName: vehicle.fleetManager.name,
       images: images,
+      ratings: rating,
+      averageRating: parseFloat(averageRating.toFixed(1)),
+      reviewCount: reviewCount,
+      vehicleRatings: undefined,
       fleetManager: undefined,
       fleetManagerVehicleDocuments: undefined,
+      user: undefined,
     };
   }
+
+  async getReviewsByVehicleId(vehicleId: number) {
+    const vehicle = await this.vehiclesRepository.findOne({
+      where: { id: vehicleId },
+      relations: ['vehicleRatings', 'vehicleRatings.user'],
+    });
+
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with ID ${vehicleId} not found.`);
+    }
+
+    const reviews = (vehicle.vehicleRatings || []).map((rev) => ({
+      name: rev.user?.firstName + ' ' + rev.user?.lastName,
+      rating: rev.rating,
+      comment: rev.comment,
+      createdAt: rev.createdAt,
+    }));
+    const ratingsArray = vehicle.vehicleRatings || [];
+    const totalRatingSum = ratingsArray.reduce((sum, review) => sum + (review.rating ?? 0), 0);
+    const reviewCount = ratingsArray.length;
+    const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
+
+
+    return {
+      vehicleId: vehicle.id,
+      reviews,
+      averageRating: parseFloat(averageRating.toFixed(1)),
+      reviewCount: reviewCount,
+    };
+  }
+
 }

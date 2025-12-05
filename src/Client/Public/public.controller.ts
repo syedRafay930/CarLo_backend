@@ -46,4 +46,9 @@ export class PublicVehicleController {
   async getVehicleDetails(@Param('vehicleId') vehicleId: number) {
     return this.vehicleService.getVehicleById(vehicleId);
   }
+
+  @Get('reviews/:vehicleId')
+  async getVehicleReviews(@Param('vehicleId') vehicleId: number) {
+    return this.vehicleService.getReviewsByVehicleId(vehicleId);
+  }
 }

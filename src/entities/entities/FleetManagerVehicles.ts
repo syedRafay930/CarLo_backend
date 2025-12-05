@@ -15,6 +15,8 @@ import { FleetManagers } from "./FleetManagers";
 import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
 import { FleetManagerUsers } from "./FleetManagerUsers";
 import { Requests } from "./Requests";
+import { VehicleRatings } from "./VehicleRatings";
+import { Bookings } from "./Bookings";
 
 @Index("fm_vehicles_chassis_number_key", ["chassisNumber"], { unique: true })
 @Index("fm_vehicles_pkey", ["id"], { unique: true })
@@ -96,10 +98,10 @@ export class FleetManagerVehicles {
 
   @Column("enum", {
     name: "driver_service_option",
-    enum: ["self_drive_only", "driver_included"],
+    enum: ["self_drive_only", "driver_included", "both"],
     default: () => "'self_drive_only'",
   })
-  driverServiceOption: "self_drive_only" | "driver_included";
+  driverServiceOption: "self_drive_only" | "driver_included" | "both";
 
   @Column("numeric", {
     name: "self_drive_base_rate",
@@ -126,10 +128,10 @@ export class FleetManagerVehicles {
 
   @Column("enum", {
     name: "pricing_model",
-    enum: ["per_day", "per_km"],
+    enum: ["per_day", "per_km", "per_hr"],
     default: () => "'per_day'",
   })
-  pricingModel: "per_day" | "per_km";
+  pricingModel: "per_day" | "per_km" | "per_hr";
 
   @Column("numeric", {
     name: "late_return_charge_per_hour",
@@ -227,4 +229,10 @@ export class FleetManagerVehicles {
     (vehicleDynamicPricing) => vehicleDynamicPricing.vehicle
   )
   vehicleDynamicPricings: VehicleDynamicPricing[];
+
+  @OneToMany(() => VehicleRatings, (vehicleRatings) => vehicleRatings.vehicle)
+  vehicleRatings: VehicleRatings[];
+
+  @OneToMany(() => Bookings, (bookings) => bookings.vehicle)
+  bookings: Bookings[];
 }
