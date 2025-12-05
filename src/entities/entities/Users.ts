@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Bookings } from "./Bookings";
+import { Transactions } from "./Transactions";
 import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
 import { VehicleRatings } from "./VehicleRatings";
 
@@ -64,6 +65,9 @@ export class Users {
 
   @OneToMany(() => Bookings, (bookings) => bookings.user)
   bookings: Bookings[];
+
+  @OneToMany(() => Transactions, (transactions) => transactions.user)
+  transactions: Transactions[];
 
   @OneToOne(
     () => UserFavoriteVehicles,

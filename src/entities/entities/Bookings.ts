@@ -4,11 +4,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { FleetManagers } from "./FleetManagers";
 import { Users } from "./Users";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
+import { Transactions } from "./Transactions";
 
 @Index("bookings_booking_code_key", ["bookingCode"], { unique: true })
 @Index("bookings_pkey", ["id"], { unique: true })
@@ -44,6 +46,12 @@ export class Bookings {
     enum: ["per_day", "per_km", "per_hr"],
   })
   priceModel: "per_day" | "per_km" | "per_hr";
+
+  @Column("enum", {
+    name: "payment_status",
+    enum: ['pending', 'advance_paid' , 'full_paid'],
+  })
+  paymentStatus: 'pending' | 'advance_paid' | 'full_paid';
 
   @Column("integer", { name: "total_days", nullable: true, default: () => "0" })
   totalDays: number | null;
@@ -103,6 +111,7 @@ export class Bookings {
     name: "status",
     enum: [
       "pending",
+      "pending_payment",
       "confirmed",
       "rejected",
       "cancelled",
@@ -162,4 +171,7 @@ export class Bookings {
   )
   @JoinColumn([{ name: "vehicle_id", referencedColumnName: "id" }])
   vehicle: FleetManagerVehicles;
+
+  @OneToMany(() => Transactions, (transactions) => transactions.booking)
+  transactions: Transactions;
 }

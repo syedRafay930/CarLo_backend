@@ -109,7 +109,7 @@ export class FleetManagerVehicles {
     precision: 10,
     scale: 2,
   })
-  selfDriveBaseRate: number;
+  selfDriveBaseRate: number | null;
 
   @Column("numeric", {
     name: "driver_included_rate",
