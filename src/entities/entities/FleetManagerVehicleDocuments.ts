@@ -67,10 +67,23 @@ export class FleetManagerVehicleDocuments {
 
   @Column("enum", {
     name: "verification_status",
-    enum: ["pending", "comparison_failed", "verified", "rejected"],
+    enum: [
+      "pending",
+      "comparison_failed",
+      "verified",
+      "rejected",
+      "ocr_passed",
+      "ocr_flagged",
+    ],
     default: () => "'pending'",
   })
-  verificationStatus: "pending" | "comparison_failed" | "verified" | "rejected";
+  verificationStatus:
+    | "pending"
+    | "comparison_failed"
+    | "verified"
+    | "rejected"
+    | "ocr_passed"
+    | "ocr_flagged";
 
   @Column("text", { name: "verification_notes", nullable: true })
   verificationNotes: string | null;

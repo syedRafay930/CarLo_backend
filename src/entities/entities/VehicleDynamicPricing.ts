@@ -38,6 +38,10 @@ export class VehicleDynamicPricing {
     | "seasonal_peak"
     | "manual_override";
 
+  /** JSON: baseRate, multiplierPercent, breakdown, reasoning (rule-based engine). */
+  @Column("text", { name: "engine_breakdown_json", nullable: true })
+  engineBreakdownJson: string | null;
+
   @Column("character varying", {
     name: "created_by_service",
     length: 50,

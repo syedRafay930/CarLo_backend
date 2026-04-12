@@ -173,6 +173,20 @@ export class FleetManagerVehicles {
   @Column("boolean", { name: "is_deleted", default: () => "false" })
   isDeleted: boolean;
 
+  @Column("integer", {
+    name: "max_adjustment_percent",
+    nullable: true,
+    default: () => "30",
+  })
+  maxAdjustmentPercent: number | null;
+
+  @Column("boolean", {
+    name: "dynamic_pricing_enabled",
+    nullable: true,
+    default: () => "true",
+  })
+  dynamicPricingEnabled: boolean | null;
+
   @Column("timestamp without time zone", {
     name: "created_at",
     default: () => "now()",

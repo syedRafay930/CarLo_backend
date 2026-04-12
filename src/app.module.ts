@@ -10,6 +10,8 @@ import { ClientAppModule } from './Client/client.app.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { ChatbotModule } from './Chatbot/chatbot.module';
 import { AllocationModule } from './Allocation/allocation.module';
+import { DynamicPricingModule } from './DynamicPricing/dynamic-pricing.module';
+import { OcrModule } from './OCR/ocr.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AllocationModule } from './Allocation/allocation.module';
     ClientAppModule,
     ChatbotModule,
     AllocationModule,
+    DynamicPricingModule,
+    OcrModule,
   ],
 })
 export class AppModule {}

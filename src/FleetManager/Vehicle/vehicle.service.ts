@@ -12,6 +12,7 @@ import { CreateVehicleDto } from './dto/create_vehicle.dto';
 import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { VehicleDocumentType } from './dto/upload_vehicle_documents.dto';
 import { EditVehicleDto } from './dto/edit_vehicle.dto';
+import { DynamicPricingService } from 'src/DynamicPricing/dynamic-pricing.service';
 // import { SubscriptionService } from '../subscription/subscription.service';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class VehicleService {
 
     @InjectRepository(VehicleRatings)
     private vehicleRatingsRepository: Repository<VehicleRatings>,
+    private dynamicPricingService: DynamicPricingService,
     // private subscriptionService: SubscriptionService,
   ) {}
 
@@ -379,9 +381,16 @@ export class VehicleService {
       });
     }
 
-    queryBuilder.orderBy('vehicle.createdAt', sortOrder).skip(skip).take(limit);
+    queryBuilder
+      .orderBy('vehicle.createdAt', sortOrder)
+      .skip(skip)
+      .take(safeLimit);
 
     const [data, total] = await queryBuilder.getManyAndCount();
+
+    const ids = data.map((v) => v.id);
+    const priceMap =
+      await this.dynamicPricingService.getActivePricingMapForVehicleIds(ids);
 
     const cleanedData = data.map((vehicle) => {
       const vehicleWithRelations = vehicle as any;
@@ -397,6 +406,33 @@ export class VehicleService {
       const reviewCount = ratingsArray.length;
       const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
 
+      const baseRaw = vehicle.selfDriveBaseRate;
+      const baseRate =
+        typeof baseRaw === 'string'
+          ? parseFloat(baseRaw)
+          : Number(baseRaw ?? 0);
+
+      let effectiveDailyRate = Number.isFinite(baseRate) ? baseRate : 0;
+      let dynamicPricingActive = false;
+      let priceAdjustmentPercent = 0;
+
+      if (this.dynamicPricingService.isDynamicPricingEnabled(vehicle)) {
+        const row = priceMap.get(vehicle.id);
+        if (row) {
+          const adj = parseFloat(String(row.newDailyRate ?? baseRate));
+          if (Number.isFinite(adj)) effectiveDailyRate = adj;
+          dynamicPricingActive = true;
+          try {
+            const o = JSON.parse(row.engineBreakdownJson || '{}') as {
+              multiplierPercent?: number;
+            };
+            priceAdjustmentPercent = o.multiplierPercent ?? 0;
+          } catch {
+            priceAdjustmentPercent = 0;
+          }
+        }
+      }
+
       return {
         ...vehicle,
         coverImageUrl: coverImage,
@@ -404,6 +440,9 @@ export class VehicleService {
         reviewCount: reviewCount,
         fleetManagerVehicleDocuments: undefined,
         vehicleRatings: undefined,
+        effectiveDailyRate,
+        dynamicPricingActive,
+        priceAdjustmentPercent,
       };
     });
 

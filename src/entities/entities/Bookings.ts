@@ -123,6 +123,7 @@ export class Bookings {
   })
   status:
     | "pending"
+    | "pending_payment"
     | "confirmed"
     | "rejected"
     | "cancelled"
@@ -173,5 +174,5 @@ export class Bookings {
   vehicle: FleetManagerVehicles;
 
   @OneToMany(() => Transactions, (transactions) => transactions.booking)
-  transactions: Transactions;
+  transactions: Transactions[];
 }

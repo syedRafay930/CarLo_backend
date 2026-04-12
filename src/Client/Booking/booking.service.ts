@@ -286,7 +286,7 @@ export class BookingService {
 
         paymentNote:
           transaction?.method === 'cash'
-            ? `Initial advance amount (${transaction?.amount.toFixed(2) || '0.00'} PKR) required at pickup.`
+            ? `Initial advance amount (${parseFloat(String(transaction?.amount ?? '0')).toFixed(2)} PKR) required at pickup.`
             : 'Payment received successfully.',
       },
     };

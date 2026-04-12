@@ -29,10 +29,26 @@ export class FleetManagersDocuments {
 
   @Column("enum", {
     name: "verification_status",
-    enum: ["pending", "in_review", "verified", "rejected"],
+    enum: [
+      "pending",
+      "in_review",
+      "verified",
+      "rejected",
+      "ocr_passed",
+      "ocr_flagged",
+    ],
     default: () => "'pending'",
   })
-  verificationStatus: "pending" | "in_review" | "verified" | "rejected";
+  verificationStatus:
+    | "pending"
+    | "in_review"
+    | "verified"
+    | "rejected"
+    | "ocr_passed"
+    | "ocr_flagged";
+
+  @Column("text", { name: "ocr_result_json", nullable: true })
+  ocrResultJson: string | null;
 
   @Column("timestamp without time zone", {
     name: "verified_at",

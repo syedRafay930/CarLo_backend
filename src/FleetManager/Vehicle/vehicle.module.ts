@@ -9,6 +9,7 @@ import { AuthModule } from 'src/Admin/Auth/auth.module';
 import { FMAuthModule } from '../Auth/auth.module';
 import { CloudinaryModule } from 'src/Cloudinary/cloudinary.module';
 import { VehicleRatings } from 'src/entities/entities/VehicleRatings';
+import { DynamicPricingModule } from 'src/DynamicPricing/dynamic-pricing.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -20,6 +21,7 @@ import { VehicleRatings } from 'src/entities/entities/VehicleRatings';
     FMAuthModule,
     AuthModule,
     CloudinaryModule,
+    DynamicPricingModule,
   ],
   controllers: [VehicleController],
   providers: [VehicleService],

@@ -23,14 +23,16 @@ import { UsersModule } from 'src/Admin/User/user.module';
     {
       provide: 'FIREBASE_ADMIN',
       useFactory: () => {
-        const envPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
+        const envPath =
+          process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim() ||
+          process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
         const serviceAccountPath = envPath
           ? path.isAbsolute(envPath)
             ? envPath
             : path.join(process.cwd(), envPath)
           : path.join(
               __dirname,
-              '../../config/carlo-26172-firebase-adminsdk-fbsvc-aa9f235756.json',
+              '../../config/carlo-447920-service-account.json',
             );
 
         if (!fs.existsSync(serviceAccountPath)) {
