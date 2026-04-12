@@ -92,6 +92,9 @@ export class FleetService {
         type: dto.fleet.fleet_type,
         createdAt: new Date(),
         address: dto.fleet?.fleet_address,
+        city: dto.fleet.fleet_city ?? null,
+        state: dto.fleet.fleet_state ?? null,
+        country: dto.fleet.fleet_country ?? null,
         // subscription: dto.company.subscription,
         isActive: false,
         isDelete: false,
@@ -106,8 +109,12 @@ export class FleetService {
         throw new UnauthorizedException('Role not found');
       }
 
-      const tempPassword = Math.random().toString(36).slice(-8);
-      const hashedPassword = await bcrypt.hash(tempPassword, 12);
+      const passwordWasSet =
+        !!dto.user.Password && dto.user.Password.trim().length >= 8;
+      const plainPassword = passwordWasSet
+        ? dto.user.Password!.trim()
+        : Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
+      const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
       const fleetUser = this.fleetUserRepository.create({
         firstName: dto.user.first_name,
@@ -120,19 +127,27 @@ export class FleetService {
         fleetManager: { id: savedFleet.id },
         createdAt: new Date(),
         invitedAt: new Date(),
-        isFirstlogin: true,
-        isActive: false,
+        isFirstlogin: !passwordWasSet,
+        isActive: passwordWasSet,
         isDelete: false,
       }) as FleetManagerUsers;
       const savedFleetUser = await queryRunner.manager.save(fleetUser);
       await queryRunner.commitTransaction();
       return {
-        fleet: fleetUser,
+        fleet: {
+          id: savedFleet.id,
+          name: savedFleet.name,
+          email: savedFleet.email,
+          type: savedFleet.type,
+          isActive: savedFleet.isActive,
+        },
         user: {
+          id: savedFleetUser.id,
           first_name: savedFleetUser.firstName,
           last_name: savedFleetUser.lastName,
           email: savedFleetUser.email,
         },
+        ...(passwordWasSet ? {} : { tempPassword: plainPassword }),
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -233,7 +248,7 @@ export class FleetService {
     const where: any = {};
 
     if (search) {
-      where.company_name = ILike(`%${search}%`);
+      where.name = ILike(`%${search}%`);
     }
 
     if (status === 'active') where.isActive = true;

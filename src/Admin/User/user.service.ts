@@ -185,16 +185,20 @@ export class UsersService {
     search?: string,
   ) {
     const skip = (page - 1) * limit;
-    const isSuperAdmin = currentUserRoleId === 1;
+    const roleRow = await this.rolesRepository.findOne({
+      where: { id: currentUserRoleId },
+    });
+    const isSuperAdmin =
+      (roleRow?.name ?? '').toLowerCase() === 'superadmin';
 
-    const whereCondition: any = {
+    const whereCondition: Record<string, unknown> = {
       id: Not(currentUserId),
     };
 
     if (filterStatus === 'active') {
-      whereCondition.isdeactive = false;
+      whereCondition.isDeactive = false;
     } else if (filterStatus === 'inactive') {
-      whereCondition.isdeactive = true;
+      whereCondition.isDeactive = true;
     }
 
     if (filterRole) {
@@ -202,13 +206,11 @@ export class UsersService {
     }
 
     if (search) {
-      whereCondition.admin_name = ILike(`%${search}%`);
-      whereCondition.admin_email = ILike(`%${search}%`);
-      whereCondition.admin_contact = ILike(`%${search}%`);
+      whereCondition.firstName = ILike(`%${search}%`);
     }
 
     if (!isSuperAdmin) {
-      whereCondition.isdelete = false;
+      whereCondition.isDelete = false;
     }
 
     const [data, total] = await this.usersRepository.findAndCount({
@@ -250,6 +252,56 @@ export class UsersService {
     return {
       message: 'User marked for deletion. Will be deleted in 10 days.',
       id: id,
+    };
+  }
+
+  async countAdmins(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
+  /** One-time bootstrap: remove POST /admin/auth/seed-super-admin after use. */
+  async seedSuperAdminIfEmpty(params: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) {
+    const dup = await this.usersRepository.findOne({
+      where: { email: params.email },
+    });
+    if (dup) {
+      return {
+        message: 'Admin with this email already exists',
+        seeded: false as const,
+      };
+    }
+
+    let role = await this.rolesRepository.findOne({
+      where: { name: 'SuperAdmin' },
+    });
+    if (!role) {
+      role = this.rolesRepository.create({ name: 'SuperAdmin' });
+      await this.rolesRepository.save(role);
+    }
+
+    const hashedPassword = await bcrypt.hash(params.password, 12);
+    const user = this.usersRepository.create({
+      firstName: params.firstName,
+      lastName: params.lastName,
+      email: params.email,
+      hashedPassword,
+      isDeactive: false,
+      isDelete: false,
+      isFirstlogin: false,
+      createdAt: new Date(),
+      role,
+    });
+    const saved = await this.usersRepository.save(user);
+    const { hashedPassword: _hp, ...safe } = saved;
+    return {
+      message: 'Super admin created',
+      seeded: true as const,
+      user: safe,
     };
   }
 }

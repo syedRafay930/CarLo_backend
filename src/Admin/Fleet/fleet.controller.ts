@@ -25,26 +25,31 @@ import { UploadedFiles } from '@nestjs/common';
 import { UploadDocumentsDto } from './dto/upload_documents.dto';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
+import { VehicleRequestService } from 'src/FleetManager/Vehicle_Request/vehicle_request.service';
 
 @Controller('admin/fleet')
 export class FleetController {
   constructor(
     private fleetService: FleetService,
     private vehicleService: VehicleService,
+    private vehicleRequestService: VehicleRequestService,
   ) {}
 
   @UseGuards(JwtBlacklistGuard)
   @Post('add')
   async AddFleetWithUser(@Body() dto: AddFleetWithUserDto) {
-    const { fleet, user } = await this.fleetService.addFleetWithUser(dto);
-    await this.fleetService.generateJwtTokenAndResetLink(
-      dto.user.Email,
-      dto.fleet.fleet_name,
-    );
+    const created = await this.fleetService.addFleetWithUser(dto);
+    try {
+      await this.fleetService.generateJwtTokenAndResetLink(
+        dto.user.Email,
+        dto.fleet.fleet_name,
+      );
+    } catch {
+      /* Fleet + FM user are already saved; SMTP may be unset in local dev */
+    }
     return {
       message: 'Fleet created successfully',
-      fleet,
-      user,
+      ...created,
     };
   }
 
@@ -70,6 +75,30 @@ export class FleetController {
       fleetManagerId,
       files,
       body.documentTypes,
+    );
+  }
+
+  @UseGuards(JwtBlacklistGuard)
+  @Get('vehicle-requests')
+  async getAdminVehicleRequests(
+    @Query('status') status?: string,
+    @Query('type') type?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 50,
+  ) {
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate = to ? new Date(to) : undefined;
+    return this.vehicleRequestService.getAllVehicleRequestsForAdmin(
+      status,
+      type,
+      search,
+      fromDate,
+      toDate,
+      +page,
+      +limit,
     );
   }
 

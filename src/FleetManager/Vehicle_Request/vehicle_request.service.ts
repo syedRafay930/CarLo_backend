@@ -119,4 +119,46 @@ export class VehicleRequestService {
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
+
+  /** Admin portal: all fleets’ requests (no fleet_id filter). */
+  async getAllVehicleRequestsForAdmin(
+    status?: string,
+    type?: string,
+    search?: string,
+    fromDate?: Date,
+    toDate?: Date,
+    page = 1,
+    limit = 50,
+  ) {
+    const skip = (page - 1) * limit;
+    const query = this.vehicleRequestRepository
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.vehicle', 'vehicle')
+      .leftJoinAndSelect('vehicle.fleetManagerVehicleDocuments', 'documents')
+      .leftJoinAndSelect('request.fleet', 'fleet')
+      .leftJoin('request.adminRespondedBy', 'admin')
+      .addSelect(['admin.id', 'admin.firstName', 'admin.lastName']);
+
+    if (status) {
+      query.andWhere('request.requestStatus = :status', { status });
+    }
+    if (type) {
+      query.andWhere('request.requestType = :type', { type });
+    }
+    if (search) {
+      query.andWhere('request.title ILIKE :search', { search: `%${search}%` });
+    }
+    if (fromDate) {
+      query.andWhere('request.createdAt >= :fromDate', { fromDate });
+    }
+    if (toDate) {
+      query.andWhere('request.createdAt <= :toDate', { toDate });
+    }
+
+    query.orderBy('request.createdAt', 'DESC').skip(skip).take(limit);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
 }

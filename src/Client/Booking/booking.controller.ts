@@ -8,9 +8,13 @@ import { ProcessPaymentDto } from './dto/process_payment.dto';
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
+  @UseGuards(ClientJwtBlacklistGuard)
   @Post('create')
-  async createBooking(@Body() createBookingDto: CreateBookingDto) {
-    const booking = await this.bookingService.createBooking(createBookingDto);
+  async createBooking(@Req() req: any, @Body() createBookingDto: CreateBookingDto) {
+    const booking = await this.bookingService.createBooking(
+      createBookingDto,
+      req.user.client_email,
+    );
 
     return {
       message:

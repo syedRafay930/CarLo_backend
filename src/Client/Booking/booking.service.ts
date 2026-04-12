@@ -29,12 +29,12 @@ export class BookingService {
     private userService: ClientUsersService,
   ) {}
 
-  async createBooking(dto: CreateBookingDto) {
-    const client = await this.userService.findByEmail(dto.email);
+  async createBooking(dto: CreateBookingDto, clientEmail: string) {
+    const client = await this.userService.findByEmail(clientEmail);
 
     if (!client) {
       throw new NotFoundException(
-        `User with email ${dto.email} not found. Please register.`,
+        `User with email ${clientEmail} not found. Please register.`,
       );
     }
 

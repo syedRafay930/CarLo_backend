@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -27,7 +28,7 @@ export class AddFleetUserDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  Dob: Date;
+  Dob?: Date;
 
   @IsNotEmpty()
   @IsEmail()
@@ -36,4 +37,9 @@ export class AddFleetUserDto {
   @IsNotEmpty()
   @IsString()
   Role: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  Password?: string;
 }

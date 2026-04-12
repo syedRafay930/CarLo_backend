@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RedisModule } from '@nestjs-modules/ioredis';
-import { MailerModule } from '@nestjs-modules/mailer';
+import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminAppModule } from './Admin/admin.app.module';
 import { MailModule } from './Nodemailer/mailer.module';
@@ -10,6 +8,9 @@ import { CloudinaryModule } from './Cloudinary/cloudinary.module';
 import { FleetManagerAppModule } from './FleetManager/fleetmanager.app.module';
 import { ClientAppModule } from './Client/client.app.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { ChatbotModule } from './Chatbot/chatbot.module';
+import { AllocationModule } from './Allocation/allocation.module';
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -28,20 +29,14 @@ import { FirebaseModule } from './firebase/firebase.module';
       synchronize: false, 
     }),
 
-    RedisModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        type: 'single',
-        url: config.get<string>('REDIS_URL') || 'redis://localhost:6380',
-      }),
-    }),
     AdminAppModule,
     MailModule,
     CloudinaryModule,
     FleetManagerAppModule,
     FirebaseModule,
     ClientAppModule,
+    ChatbotModule,
+    AllocationModule,
   ],
 })
 export class AppModule {}

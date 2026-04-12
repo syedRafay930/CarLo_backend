@@ -282,6 +282,140 @@ export class VehicleService {
     };
   }
 
+  /**
+   * Public catalog: all fleets, only vehicles that are listed for rent.
+   * DB uses vehicleStatus "available" (not "active"); must be admin-approved.
+   */
+  async getPublicCatalogVehicles(
+    page: number,
+    limit: number,
+    make?: string,
+    driverServiceOption?: string,
+    search?: string,
+    sortOrder: 'ASC' | 'DESC' = 'DESC',
+    minPrice?: number,
+    maxPrice?: number,
+    vehicleType?: string,
+    color?: string,
+    seatingCapacity?: number,
+    fuelType?: string,
+    pricingModel?: string,
+  ) {
+    const parsedPage = Number(page) || 1;
+    const parsedLimit = Number(limit) || 10;
+    const safePage = Math.max(1, Math.floor(parsedPage));
+    const safeLimit = Math.max(1, Math.floor(parsedLimit));
+    const skip = (safePage - 1) * safeLimit;
+
+    const queryBuilder = this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .where('vehicle.isDeleted = :isDel', { isDel: false })
+      .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
+      .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' });
+
+    queryBuilder.leftJoinAndSelect(
+      'vehicle.fleetManagerVehicleDocuments',
+      'coverImage',
+      'coverImage.docType = :docType',
+      { docType: 'image_coverimg' },
+    );
+
+    queryBuilder.leftJoinAndSelect('vehicle.vehicleRatings', 'rating');
+
+    if (make) {
+      queryBuilder.andWhere('vehicle.make ILIKE :make', { make: `%${make}%` });
+    }
+
+    if (driverServiceOption) {
+      queryBuilder.andWhere(
+        'vehicle.driverServiceOption = :driverServiceOption',
+        { driverServiceOption },
+      );
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(vehicle.make ILIKE :search OR vehicle.model ILIKE :search OR vehicle.licensePlate ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (minPrice !== undefined) {
+      queryBuilder.andWhere('vehicle.selfDriveBaseRate >= :minPrice', {
+        minPrice,
+      });
+    }
+    if (maxPrice !== undefined) {
+      queryBuilder.andWhere('vehicle.selfDriveBaseRate <= :maxPrice', {
+        maxPrice,
+      });
+    }
+
+    if (vehicleType) {
+      queryBuilder.andWhere('vehicle.vehicleType = :vehicleType', {
+        vehicleType,
+      });
+    }
+
+    if (color) {
+      queryBuilder.andWhere('vehicle.color ILIKE :color', {
+        color: `%${color}%`,
+      });
+    }
+
+    if (seatingCapacity !== undefined) {
+      queryBuilder.andWhere('vehicle.seatingCapacity >= :seatingCapacity', {
+        seatingCapacity,
+      });
+    }
+
+    if (fuelType) {
+      queryBuilder.andWhere('vehicle.fuelType = :fuelType', { fuelType });
+    }
+
+    if (pricingModel) {
+      queryBuilder.andWhere('vehicle.pricingModel = :pricingModel', {
+        pricingModel,
+      });
+    }
+
+    queryBuilder.orderBy('vehicle.createdAt', sortOrder).skip(skip).take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    const cleanedData = data.map((vehicle) => {
+      const vehicleWithRelations = vehicle as any;
+      const coverImage =
+        vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl ||
+        null;
+
+      const ratingsArray = vehicleWithRelations.vehicleRatings || [];
+      const totalRatingSum = ratingsArray.reduce(
+        (sum, review) => sum + review.rating,
+        0,
+      );
+      const reviewCount = ratingsArray.length;
+      const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
+
+      return {
+        ...vehicle,
+        coverImageUrl: coverImage,
+        averageRating: parseFloat(averageRating.toFixed(1)),
+        reviewCount: reviewCount,
+        fleetManagerVehicleDocuments: undefined,
+        vehicleRatings: undefined,
+      };
+    });
+
+    return {
+      data: cleanedData,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
+    };
+  }
+
   async getAllDocsByVehicleId(
     fmId: number,
     vehicleId: number,
@@ -385,6 +519,8 @@ export class VehicleService {
     return {
       ...vehicle,
       fleetManagerName: vehicle.fleetManager.name,
+      fleetCity: vehicle.fleetManager?.city ?? null,
+      fleetCountry: vehicle.fleetManager?.country ?? null,
       images: images,
       ratings: rating,
       averageRating: parseFloat(averageRating.toFixed(1)),

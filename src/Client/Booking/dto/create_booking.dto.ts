@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsEnum,
   Min,
+  IsOptional,
 } from 'class-validator';
 
 enum ServiceType {
@@ -26,9 +27,10 @@ export class CreateBookingDto {
   @IsString()
   Name: string;
 
+  /** Deprecated: client identity comes from JWT (`req.user.client_email`). Kept optional for older clients. */
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  email: string;
+  email?: string;
 
   @IsString()
   phone: string;

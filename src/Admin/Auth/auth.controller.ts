@@ -15,6 +15,7 @@ import { ResetPasswordDto } from './dto/reset_password.dto';
 import { JwtBlacklistGuard } from './guards/jwt.guard';
 import { RBACService } from '../RBAC/rbac.service';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { UsersService } from '../User/user.service';
 
 @Controller('admin/auth')
 export class AuthController {
@@ -22,7 +23,19 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly rbacService: RBACService,
     private readonly firebaseService: FirebaseService,
+    private readonly usersService: UsersService,
   ) {}
+
+  /** TEMPORARY: seed first admin. Delete or guard this route in production. */
+  @Post('seed-super-admin')
+  async seedSuperAdmin() {
+    return this.usersService.seedSuperAdminIfEmpty({
+      firstName: 'Super',
+      lastName: 'Admin',
+      email: 'admin@carlo.com',
+      password: 'Admin@12345',
+    });
+  }
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {

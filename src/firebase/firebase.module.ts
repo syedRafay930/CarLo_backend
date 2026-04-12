@@ -23,17 +23,29 @@ import { UsersModule } from 'src/Admin/User/user.module';
     {
       provide: 'FIREBASE_ADMIN',
       useFactory: () => {
-        const serviceAccountPath = path.join(
-          __dirname,
-          '../../config/carlo-26172-firebase-adminsdk-fbsvc-aa9f235756.json',
-        );
+        const envPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim();
+        const serviceAccountPath = envPath
+          ? path.isAbsolute(envPath)
+            ? envPath
+            : path.join(process.cwd(), envPath)
+          : path.join(
+              __dirname,
+              '../../config/carlo-26172-firebase-adminsdk-fbsvc-aa9f235756.json',
+            );
+
+        if (!fs.existsSync(serviceAccountPath)) {
+          console.warn(
+            '[Firebase] Service account JSON not found — FCM push disabled (local dev OK). Set FIREBASE_SERVICE_ACCOUNT_PATH or add JSON at config/.',
+          );
+          return null;
+        }
 
         const serviceAccount = JSON.parse(
           fs.readFileSync(serviceAccountPath, 'utf8'),
         );
 
         return admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
         });
       },
     },

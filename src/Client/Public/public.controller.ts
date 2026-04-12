@@ -21,14 +21,10 @@ export class PublicVehicleController {
     @Query('fuelType') fuelType?: string,
     @Query('pricingModel') pricingModel?: string,
   ) {
-    return this.vehicleService.getAllVehiclesByFM(
-      5,
+    return this.vehicleService.getPublicCatalogVehicles(
       page,
       limit,
       make,
-      'available',
-      false,
-      undefined,
       driverServiceOption,
       search,
       sortOrder,

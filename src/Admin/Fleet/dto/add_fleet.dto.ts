@@ -23,7 +23,20 @@ export class AddFleetDto {
   fleet_email: string;
 
   @IsOptional()
-  fleet_address: string;
+  @IsString()
+  fleet_address?: string;
+
+  @IsOptional()
+  @IsString()
+  fleet_city?: string;
+
+  @IsOptional()
+  @IsString()
+  fleet_state?: string;
+
+  @IsOptional()
+  @IsString()
+  fleet_country?: string;
 
   @IsNotEmpty()
   @IsString()

@@ -11,6 +11,7 @@ import { MailModule } from 'src/Nodemailer/mailer.module';
 import { CloudinaryModule } from 'src/Cloudinary/cloudinary.module';
 import { CloudinaryProvider } from 'src/Cloudinary/cloudinary.provider';
 import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
+import { VehicleRequestModule } from 'src/FleetManager/Vehicle_Request/vehicle_request.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
     AuthModule,
     MailModule,
     forwardRef(() => VehicleModule),
+    forwardRef(() => VehicleRequestModule),
   ],
   controllers: [FleetController],
   providers: [FleetService, CloudinaryProvider],

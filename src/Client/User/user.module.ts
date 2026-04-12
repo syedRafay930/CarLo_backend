@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientUsersService } from './user.service';
 import { ClientUsersController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { RedisModule } from '@nestjs-modules/ioredis';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { AuthModule } from 'src/Admin/Auth/auth.module';
 import { Users } from 'src/entities/entities/Users';
@@ -14,7 +13,6 @@ import { UserFavoriteVehicles } from 'src/entities/entities/UserFavoriteVehicles
   imports: [
     TypeOrmModule.forFeature([Users, UserFavoriteVehicles]),
     JwtModule.register({}),
-    RedisModule,
     MailModule,
     AuthModule,
   ],

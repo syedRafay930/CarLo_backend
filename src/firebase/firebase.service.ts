@@ -159,6 +159,11 @@ export class FirebaseService {
       return { success: true, message: 'No tokens to send' };
     }
 
+    if (admin.apps.length === 0) {
+      console.warn('[Firebase] FCM skipped — Firebase Admin not initialized');
+      return { success: true, message: 'FCM disabled (no service account)' };
+    }
+
     // 3. Push Notification
     let successCount = 0;
     let failureCount = 0;
