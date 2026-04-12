@@ -215,7 +215,7 @@ export class FMUsersService {
     }
 
     if (!isSuperAdmin) {
-      whereCondition.isdelete = false;
+      whereCondition.isDelete = false;
     }
 
     const [data, total] = await this.usersRepository.findAndCount({

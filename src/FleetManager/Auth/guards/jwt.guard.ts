@@ -24,6 +24,10 @@ export class FMJwtBlacklistGuard extends FMJwtAuthGuard {
     const token = authHeader.split(' ')[1];
     if (!token) throw new UnauthorizedException('Invalid token format');
 
+    if (!this.redisService) {
+      throw new UnauthorizedException();
+    }
+
     const isBlacklisted = await this.redisService.getValue(
       `blacklist:${token}`,
     );
