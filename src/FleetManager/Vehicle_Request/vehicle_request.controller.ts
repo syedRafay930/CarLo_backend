@@ -54,6 +54,8 @@ export class VehicleRequestController {
       type: dto.requestType,
       redirect_url: `/fleet/VehicleRequestDetail/${result.request_id}`,
     });
+
+    return result;
   }
 
   @UseGuards(FMJwtBlacklistGuard)
@@ -86,6 +88,8 @@ export class VehicleRequestController {
       type: dto.requestType,
       redirect_url: `/fleet/VehicleRequestDetail/${result.request_id}`,
     });
+
+    return result;
   }
 
   @UseGuards(FMJwtBlacklistGuard)

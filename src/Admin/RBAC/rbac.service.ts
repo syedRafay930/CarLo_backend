@@ -181,7 +181,7 @@ export class RBACService {
             'relation',
             'relation.parentModule',
             'relation.childModule',
-            'roles',
+            'role',
           ],
         })
       : await this.permissionRepo.find({
@@ -190,7 +190,7 @@ export class RBACService {
             'relation',
             'relation.parentModule',
             'relation.childModule',
-            'roles',
+            'role',
           ],
         });
 
@@ -199,6 +199,7 @@ export class RBACService {
 
     for (const perm of permissions) {
       const rel = perm.relation;
+      if (!rel) continue;
       const parent = rel.parentModule;
       const child = rel.childModule;
 

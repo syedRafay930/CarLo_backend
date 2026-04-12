@@ -5,10 +5,12 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from "typeorm";
 import { Users } from "./Users";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
 
+@Unique("uq_user_vehicle_rating", ["user", "vehicle"])
 @Index("vehicle_ratings_pkey", ["id"], { unique: true })
 @Entity("vehicle_ratings", { schema: "public" })
 export class VehicleRatings {

@@ -2,11 +2,11 @@ import {
   Controller,
   Post,
   Body,
-  Get,
   UseGuards,
-  Req,
   Patch,
   Request,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ClientAuthService } from './auth.service';
 import { LoginDto } from 'src/Admin/Auth/dto/login.dto';
@@ -35,14 +35,23 @@ export class ClientAuthController {
     if (!user) {
       throw new Error('Invalid credentials');
     }
-    const token = await this.authService.generateJwtToken(user);
-    //const sidebar = await this.rbacService.getModulesByRole(user.role.id);
+    const access_token = await this.authService.generateJwtToken(user);
+    const refresh_token = await this.authService.generateRefreshToken(user);
     return {
       message: 'Login successful',
-      access_token: token,
+      access_token,
+      refresh_token,
       user,
-      //sidebar,
     };
+  }
+
+  @Post('refresh-token')
+  async refreshToken(@Headers('authorization') authorization?: string) {
+    if (!authorization?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Bearer refresh token required');
+    }
+    const refreshToken = authorization.slice(7).trim();
+    return this.authService.refreshAccessToken(refreshToken);
   }
 
   @Post('sign-up')

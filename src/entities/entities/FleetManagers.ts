@@ -16,6 +16,7 @@ import { Admin } from "./Admin";
 import { FleetManagersDocuments } from "./FleetManagersDocuments";
 import { FmRolePermissions } from "./FmRolePermissions";
 import { Requests } from "./Requests";
+import { Users } from "./Users";
 
 @Index("fleet_managers_pkey", ["id"], { unique: true })
 @Entity("fleet_managers", { schema: "public" })
@@ -66,6 +67,11 @@ export class FleetManagers {
 
   @Column("integer", { name: "subscription_id", nullable: true })
   subscriptionId: number | null;
+
+  /** Client (customer) who registered as an individual host — one fleet per client. */
+  @ManyToOne(() => Users, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn([{ name: "client_owner_id", referencedColumnName: "id" }])
+  clientOwner: Users | null;
 
   @Column("timestamp without time zone", {
     name: "created_at",

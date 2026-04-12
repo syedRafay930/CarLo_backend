@@ -66,7 +66,7 @@ export class FMAuthService {
     };
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      // expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '20m',
+      expiresIn: '7d',
     });
   }
 

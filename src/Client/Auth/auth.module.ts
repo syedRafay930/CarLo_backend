@@ -10,6 +10,8 @@ import { MailModule } from 'src/Nodemailer/mailer.module';
 import { FleetManagerUsers } from 'src/entities/entities/FleetManagerUsers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FirebaseModule } from 'src/firebase/firebase.module';
+import { ClientJwtBlacklistGuard } from './guards/jwt.guard';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([FleetManagerUsers]),
@@ -21,12 +23,17 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        //signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '20m' },
+        signOptions: { expiresIn: '7d' },
       }),
     }),
   ],
-  providers: [ClientAuthService, ClientJwtStrategy],
+  providers: [ClientAuthService, ClientJwtStrategy, ClientJwtBlacklistGuard],
   controllers: [ClientAuthController],
-  exports: [JwtModule, ClientAuthService, ClientJwtStrategy],
+  exports: [
+    JwtModule,
+    ClientAuthService,
+    ClientJwtStrategy,
+    ClientJwtBlacklistGuard,
+  ],
 })
 export class ClientAuthModule {}

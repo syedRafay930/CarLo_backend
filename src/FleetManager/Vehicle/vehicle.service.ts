@@ -2,9 +2,10 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
 import { FleetManagerVehicleDocuments } from 'src/entities/entities/FleetManagerVehicleDocuments';
 import { VehicleRatings } from 'src/entities/entities/VehicleRatings';
@@ -601,4 +602,73 @@ export class VehicleService {
     };
   }
 
+  async createVehicleReview(
+    vehicleId: number,
+    clientId: number,
+    dto: { rating: number; review?: string },
+  ) {
+    const uid = Number(clientId);
+    const existingCount = await this.vehicleRatingsRepository
+      .createQueryBuilder('r')
+      .where('r.user_id = :uid', { uid })
+      .andWhere('r.vehicle_id = :vid', { vid: vehicleId })
+      .getCount();
+
+    if (existingCount > 0) {
+      throw new ConflictException(
+        'You have already reviewed this vehicle. Each customer can submit one review per vehicle.',
+      );
+    }
+
+    const vehicle = await this.vehiclesRepository.findOne({
+      where: {
+        id: vehicleId,
+        isDeleted: false,
+        isApprovedByAdmin: true,
+      },
+    });
+
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    const row = this.vehicleRatingsRepository.create({
+      rating: dto.rating,
+      comment: dto.review ?? null,
+      user: { id: uid },
+      vehicle: { id: vehicleId },
+    });
+
+    try {
+      const saved = await this.vehicleRatingsRepository.save(row);
+      return {
+        id: saved.id,
+        rating: saved.rating,
+        review: saved.comment,
+        createdAt: saved.createdAt,
+      };
+    } catch (err) {
+      const driverCode =
+        err instanceof QueryFailedError
+          ? (err as QueryFailedError & { driverError?: { code?: string } })
+              .driverError?.code
+          : undefined;
+      const anyCode =
+        err && typeof err === 'object' && 'code' in err
+          ? String((err as { code?: string }).code)
+          : '';
+      const msg = err instanceof Error ? err.message : String(err);
+      if (
+        driverCode === '23505' ||
+        anyCode === '23505' ||
+        msg.includes('duplicate key') ||
+        msg.includes('uq_user_vehicle_rating')
+      ) {
+        throw new ConflictException(
+          'You have already reviewed this vehicle.',
+        );
+      }
+      throw err;
+    }
+  }
 }

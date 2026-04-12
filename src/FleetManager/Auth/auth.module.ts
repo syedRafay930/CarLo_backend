@@ -23,7 +23,7 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        //signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '20m' },
+        signOptions: { expiresIn: '7d' },
       }),
     }),
   ],

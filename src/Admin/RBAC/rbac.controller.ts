@@ -10,6 +10,7 @@ import {
   Put,
   Patch,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { JwtBlacklistGuard } from '../Auth/guards/jwt.guard';
 import { RBACService } from './rbac.service';
@@ -72,7 +73,7 @@ export class RBACController {
   }
 
   @Get('sidebar/:roleId')
-  async getSidebarModules(@Param('roleId') roleId: number) {
+  async getSidebarModules(@Param('roleId', ParseIntPipe) roleId: number) {
     return this.rbacService.getModulesByRole(roleId);
   }
 

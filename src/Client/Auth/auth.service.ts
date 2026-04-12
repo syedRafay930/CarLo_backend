@@ -57,11 +57,75 @@ export class ClientAuthService {
         ' ' +
         (user.lastName || 'DefaultLastName'),
       client_id: user.id,
+      tokenUse: 'access',
     };
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
-      // expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '20m',
+      expiresIn: '7d',
     });
+  }
+
+  /** Long-lived token; validated only by `refreshAccessToken`, not by `ClientJwtStrategy`. */
+  async generateRefreshToken(user: any): Promise<string> {
+    const payload = {
+      sub: user.email,
+      name:
+        (user.firstName || 'DefaultFirstName') +
+        ' ' +
+        (user.lastName || 'DefaultLastName'),
+      client_id: user.id,
+      tokenUse: 'refresh',
+    };
+    return this.jwtService.signAsync(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: '30d',
+    });
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    const isBlacklisted = await this.redisService.getValue(
+      `blacklist:${refreshToken}`,
+    );
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Token is blacklisted');
+    }
+
+    let payload: {
+      sub: string;
+      tokenUse?: string;
+      client_id?: number;
+    };
+
+    try {
+      payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      }) as typeof payload;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    if (payload.tokenUse !== 'refresh') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.usersService.findByEmail(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    if (user.isActive === false) {
+      throw new UnauthorizedException('User is Blocked');
+    }
+    if (user.isDelete) {
+      throw new UnauthorizedException('User is Deleted');
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    const access_token = await this.generateJwtToken(userWithoutPassword);
+    return { access_token };
   }
 
   async signUp(signUpDto: any) {

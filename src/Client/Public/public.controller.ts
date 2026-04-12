@@ -1,5 +1,19 @@
-import { Get, Controller, Query, Param } from '@nestjs/common';
+import {
+  Get,
+  Post,
+  Controller,
+  Query,
+  Param,
+  Body,
+  UseGuards,
+  Req,
+  ParseIntPipe,
+  HttpCode,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
+import { ClientJwtBlacklistGuard } from '../Auth/guards/jwt.guard';
+import { CreateVehicleReviewDto } from './dto/create_vehicle_review.dto';
 
 @Controller('public/vehicles')
 export class PublicVehicleController {
@@ -46,5 +60,23 @@ export class PublicVehicleController {
   @Get('reviews/:vehicleId')
   async getVehicleReviews(@Param('vehicleId') vehicleId: number) {
     return this.vehicleService.getReviewsByVehicleId(vehicleId);
+  }
+
+  @UseGuards(ClientJwtBlacklistGuard)
+  @HttpCode(201)
+  @Post('reviews/:vehicleId')
+  async createVehicleReview(
+    @Param('vehicleId', ParseIntPipe) vehicleId: number,
+    @Body() dto: CreateVehicleReviewDto,
+    @Req() req: { user?: { client_id?: number } },
+  ) {
+    const userId = req.user?.client_id;
+    if (userId == null || Number.isNaN(Number(userId))) {
+      throw new UnauthorizedException();
+    }
+    return this.vehicleService.createVehicleReview(vehicleId, userId, {
+      rating: dto.rating,
+      review: dto.review,
+    });
   }
 }

@@ -7,12 +7,14 @@ import { FmRelationModule } from 'src/entities/entities/FmRelationModule';
 import { FmRolePermissions } from 'src/entities/entities/FmRolePermissions';
 import { FMUsersModule } from '../User/user.module';
 import { FMAuthModule } from '../Auth/auth.module';
+import { AuthModule } from 'src/Admin/Auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([FmModules, FmRelationModule, FmRolePermissions]),
     forwardRef(() => FMUsersModule),
     forwardRef(() => FMAuthModule),
+    AuthModule,
   ],
   providers: [FM_RBACService],
   controllers: [FM_RBACController],

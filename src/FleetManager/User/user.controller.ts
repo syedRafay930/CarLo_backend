@@ -58,8 +58,8 @@ export class FMUsersController {
   @UseGuards(FMJwtBlacklistGuard)
   @Patch('edit-profile')
   async editProfile(@Request() req, @Body() editDto: FM_EditInternalUserDto) {
-    const currentUser = req.user as { admin_email: string };
-    const user = await this.usersService.findByEmail(currentUser.admin_email);
+    const currentUser = req.user as { fleet_email: string };
+    const user = await this.usersService.findByEmail(currentUser.fleet_email);
     if (!user) {
       throw new ForbiddenException('User not found');
     }

@@ -32,6 +32,7 @@ export enum FuelType {
 export enum DriverServiceOption {
   self_drive_only = 'self_drive_only',
   driver_included = 'driver_included',
+  both = 'both',
 }
 
 export enum PricingModel {
