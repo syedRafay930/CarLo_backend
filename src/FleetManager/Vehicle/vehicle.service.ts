@@ -318,7 +318,7 @@ export class VehicleService {
       .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
       .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' });
 
-    queryBuilder.leftJoin('vehicle.fleetManager', 'fm');
+    queryBuilder.leftJoinAndSelect('vehicle.fleetManager', 'fm');
 
     queryBuilder.leftJoinAndSelect(
       'vehicle.fleetManagerVehicleDocuments',

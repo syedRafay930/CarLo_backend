@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
 import { FleetManagers } from 'src/entities/entities/FleetManagers';
 import { FleetManagerUsers } from 'src/entities/entities/FleetManagerUsers';
+import { Admin } from 'src/entities/entities/Admin';
 
 @Injectable()
 export class VehicleRequestService {
@@ -160,5 +161,67 @@ export class VehicleRequestService {
     const [data, total] = await query.getManyAndCount();
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  /**
+   * Admin portal: set request status and apply side-effects on the vehicle when applicable.
+   */
+  async resolveRequestForAdmin(
+    requestId: number,
+    adminId: number,
+    decision: 'approved' | 'rejected',
+    adminNotes?: string,
+  ) {
+    const req = await this.vehicleRequestRepository.findOne({
+      where: { id: requestId },
+      relations: ['vehicle'],
+    });
+    if (!req) {
+      throw new NotFoundException(`Request ${requestId} not found`);
+    }
+    if (req.requestStatus !== 'pending') {
+      throw new BadRequestException(
+        `Request is already ${req.requestStatus}; only pending requests can be resolved.`,
+      );
+    }
+
+    await this.vehicleRequestRepository.manager.transaction(async (em) => {
+      const vrepo = em.getRepository(FleetManagerVehicles);
+
+      if (decision === 'approved') {
+        if (req.requestType === 'vehicle_approval' && req.vehicle?.id) {
+          await vrepo.update(req.vehicle.id, {
+            isApprovedByAdmin: true,
+            approvalStatus: 'Approved',
+          });
+        }
+        if (req.requestType === 'delete_vehicle' && req.vehicle?.id) {
+          await vrepo.update(req.vehicle.id, { isDeleted: true });
+        }
+      } else {
+        if (req.requestType === 'vehicle_approval' && req.vehicle?.id) {
+          await vrepo.update(req.vehicle.id, {
+            isApprovedByAdmin: false,
+            approvalStatus: 'Rejected',
+          });
+        }
+      }
+
+      req.requestStatus = decision;
+      if (adminNotes !== undefined) {
+        const t = adminNotes.trim();
+        req.adminNotes = t.length ? t : null;
+      }
+      req.updatedAt = new Date();
+      req.responededAt = new Date();
+      req.adminRespondedBy = { id: adminId } as Admin;
+      await em.getRepository(Requests).save(req);
+    });
+
+    return {
+      message: `Request ${decision} successfully`,
+      id: requestId,
+      requestStatus: decision,
+    };
   }
 }

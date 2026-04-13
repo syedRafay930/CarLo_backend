@@ -10,6 +10,7 @@ import {
   Put,
   Patch,
   Param,
+  ParseIntPipe,
   Req,
   Query,
   UseInterceptors,
@@ -24,6 +25,7 @@ import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { UploadedFiles } from '@nestjs/common';
 import { UploadDocumentsDto } from './dto/upload_documents.dto';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
+import { ResolveVehicleRequestDto } from './dto/resolve_vehicle_request.dto';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
 import { VehicleRequestService } from 'src/FleetManager/Vehicle_Request/vehicle_request.service';
 
@@ -99,6 +101,25 @@ export class FleetController {
       toDate,
       +page,
       +limit,
+    );
+  }
+
+  @UseGuards(JwtBlacklistGuard)
+  @Patch('vehicle-requests/:id')
+  async resolveVehicleRequest(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ResolveVehicleRequestDto,
+    @Req() req: { user?: { admin_id?: number } },
+  ) {
+    const adminId = req.user?.admin_id;
+    if (adminId == null || Number.isNaN(Number(adminId))) {
+      throw new ForbiddenException('Admin context missing');
+    }
+    return this.vehicleRequestService.resolveRequestForAdmin(
+      id,
+      Number(adminId),
+      dto.decision,
+      dto.adminNotes,
     );
   }
 

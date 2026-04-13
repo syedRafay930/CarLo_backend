@@ -3,10 +3,10 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { Admin } from 'src/entities/entities/Admin';
 import { FleetManagers } from 'src/entities/entities/FleetManagers';
@@ -99,6 +99,18 @@ export class HostService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'Your account has no password set; reset your password on CarLo, then try again.',
+      );
+    }
+    const passwordOk = await bcrypt.compare(dto.password, user.password);
+    if (!passwordOk) {
+      throw new UnauthorizedException(
+        'Password does not match your CarLo account. Use the same password you use to sign in here.',
+      );
+    }
+    const fmPasswordHash = await bcrypt.hash(dto.password, 12);
 
     const admin = await this.adminRepo.findOne({
       where: {},
@@ -137,29 +149,25 @@ export class HostService {
     });
     const savedRole = await this.fmRoleRepo.save(role);
 
-    const tempPlain = randomBytes(9).toString('base64url').slice(0, 12);
-    const hashed = await bcrypt.hash(tempPlain, 10);
-
     const fmUserEntity = this.fmUserRepo.create({
       fleetManager: { id: savedFleet.id },
       fmUsersRole: { id: savedRole.id },
       email: user.email ?? '',
-      password: hashed,
+      password: fmPasswordHash,
       firstName: user.firstName,
       lastName: user.lastName,
       contact: dto.contactNumber.slice(0, 20),
       isActive: true,
       isDelete: false,
-      isFirstlogin: true,
+      isFirstlogin: false,
     });
     const savedFmUser = await this.fmUserRepo.save(fmUserEntity);
 
     return {
       message:
-        'Host fleet created. Use the temporary password with FM login (email) or continue in the app.',
+        'Host fleet created. Sign in to the Fleet Manager portal with the same email and password as your CarLo account.',
       fleetId: savedFleet.id,
       fleetManagerUserId: savedFmUser.id,
-      tempPassword: tempPlain,
       email: user.email,
     };
   }
