@@ -34,6 +34,8 @@ export class PublicVehicleController {
     @Query('seatingCapacity') seatingCapacity?: number,
     @Query('fuelType') fuelType?: string,
     @Query('pricingModel') pricingModel?: string,
+    @Query('city') city?: string,
+    @Query('transmissionType') transmissionType?: string,
   ) {
     return this.vehicleService.getPublicCatalogVehicles(
       page,
@@ -49,6 +51,8 @@ export class PublicVehicleController {
       seatingCapacity,
       fuelType,
       pricingModel,
+      city,
+      transmissionType,
     );
   }
 

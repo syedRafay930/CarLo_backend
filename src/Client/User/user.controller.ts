@@ -19,10 +19,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ClientUsersService } from './user.service';
 import { UpdateProfileDto } from './dto/update_profile.dto';
 import { ClientJwtBlacklistGuard } from '../Auth/guards/jwt.guard';
+import { AnalyticsService } from 'src/Analytics/analytics.service';
 
 @Controller('client/profile')
 export class ClientUsersController {
-  constructor(private readonly clientService: ClientUsersService) {}
+  constructor(
+    private readonly clientService: ClientUsersService,
+    private readonly analyticsService: AnalyticsService,
+  ) {}
 
   @UseGuards(ClientJwtBlacklistGuard)
   @Patch()
@@ -60,6 +64,13 @@ export class ClientUsersController {
   ) {
     const clientId = req.user.client_id;
     return this.clientService.unmarkAsFavorite(clientId, vehicleId);
+  }
+
+  @UseGuards(ClientJwtBlacklistGuard)
+  @Get('analytics')
+  getMyAnalytics(@Req() req: { user?: { client_id?: number } }) {
+    const clientId = req.user?.client_id as number;
+    return this.analyticsService.getClientAnalytics(clientId);
   }
 
   @UseGuards(ClientJwtBlacklistGuard)

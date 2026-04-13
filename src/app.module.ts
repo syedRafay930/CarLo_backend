@@ -12,6 +12,7 @@ import { ChatbotModule } from './Chatbot/chatbot.module';
 import { AllocationModule } from './Allocation/allocation.module';
 import { DynamicPricingModule } from './DynamicPricing/dynamic-pricing.module';
 import { OcrModule } from './OCR/ocr.module';
+import { AnalyticsModule } from './Analytics/analytics.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { OcrModule } from './OCR/ocr.module';
     AllocationModule,
     DynamicPricingModule,
     OcrModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

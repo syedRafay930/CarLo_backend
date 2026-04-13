@@ -5,6 +5,7 @@ import { ClientUsersController } from './user.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { AuthModule } from 'src/Admin/Auth/auth.module';
+import { AnalyticsModule } from 'src/Analytics/analytics.module';
 import { Users } from 'src/entities/entities/Users';
 import { UserFavoriteVehicles } from 'src/entities/entities/UserFavoriteVehicles';
 
@@ -15,6 +16,7 @@ import { UserFavoriteVehicles } from 'src/entities/entities/UserFavoriteVehicles
     JwtModule.register({}),
     MailModule,
     AuthModule,
+    AnalyticsModule,
   ],
   providers: [ClientUsersService],
   exports: [ClientUsersService, TypeOrmModule],

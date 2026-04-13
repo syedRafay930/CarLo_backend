@@ -303,6 +303,8 @@ export class VehicleService {
     seatingCapacity?: number,
     fuelType?: string,
     pricingModel?: string,
+    city?: string,
+    transmissionType?: string,
   ) {
     const parsedPage = Number(page) || 1;
     const parsedLimit = Number(limit) || 10;
@@ -315,6 +317,8 @@ export class VehicleService {
       .where('vehicle.isDeleted = :isDel', { isDel: false })
       .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
       .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' });
+
+    queryBuilder.leftJoin('vehicle.fleetManager', 'fm');
 
     queryBuilder.leftJoinAndSelect(
       'vehicle.fleetManagerVehicleDocuments',
@@ -379,6 +383,18 @@ export class VehicleService {
     if (pricingModel) {
       queryBuilder.andWhere('vehicle.pricingModel = :pricingModel', {
         pricingModel,
+      });
+    }
+
+    if (city?.trim()) {
+      queryBuilder.andWhere('fm.city ILIKE :fleetCity', {
+        fleetCity: `%${city.trim()}%`,
+      });
+    }
+
+    if (transmissionType?.trim()) {
+      queryBuilder.andWhere('vehicle.transmissionType ILIKE :transmission', {
+        transmission: `%${transmissionType.trim()}%`,
       });
     }
 
