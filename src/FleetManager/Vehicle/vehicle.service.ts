@@ -472,6 +472,102 @@ export class VehicleService {
     };
   }
 
+  /**
+   * Distinct vehicle makes in the public catalog (same visibility as `getPublicCatalogVehicles`).
+   */
+  async getPublicCatalogMakes(): Promise<{ data: string[] }> {
+    const rows = await this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .select('vehicle.make', 'make')
+      .distinct(true)
+      .where('vehicle.isDeleted = :isDel', { isDel: false })
+      .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
+      .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' })
+      .andWhere('vehicle.make IS NOT NULL')
+      .andWhere("TRIM(vehicle.make) <> ''")
+      .orderBy('vehicle.make', 'ASC')
+      .getRawMany();
+
+    const data = rows
+      .map((r: { make?: string }) => String(r.make ?? '').trim())
+      .filter((m) => m.length > 0);
+    return { data };
+  }
+
+  /**
+   * Distinct models in the public catalog for a given make (case-insensitive).
+   */
+  async getPublicCatalogModels(make?: string): Promise<{ data: string[] }> {
+    if (!make?.trim()) {
+      return { data: [] };
+    }
+    const trimmed = make.trim();
+    const rows = await this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .select('vehicle.model', 'model')
+      .distinct(true)
+      .where('vehicle.isDeleted = :isDel', { isDel: false })
+      .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
+      .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' })
+      .andWhere('LOWER(TRIM(vehicle.make)) = LOWER(TRIM(:make))', {
+        make: trimmed,
+      })
+      .andWhere('vehicle.model IS NOT NULL')
+      .andWhere("TRIM(vehicle.model) <> ''")
+      .orderBy('vehicle.model', 'ASC')
+      .getRawMany();
+
+    const data = rows
+      .map((r: { model?: string }) => String(r.model ?? '').trim())
+      .filter((m) => m.length > 0);
+    return { data };
+  }
+
+  /** Distinct colors from catalog plus common defaults for empty DB. */
+  async getPublicCatalogColors(): Promise<{ data: string[] }> {
+    const rows = await this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .select('vehicle.color', 'color')
+      .distinct(true)
+      .where('vehicle.isDeleted = :isDel', { isDel: false })
+      .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
+      .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' })
+      .andWhere('vehicle.color IS NOT NULL')
+      .andWhere("TRIM(vehicle.color) <> ''")
+      .orderBy('vehicle.color', 'ASC')
+      .getRawMany();
+
+    const fromDb = rows
+      .map((r: { color?: string }) => String(r.color ?? '').trim())
+      .filter(Boolean);
+    const curated = [
+      'White',
+      'Black',
+      'Silver',
+      'Gray',
+      'Grey',
+      'Red',
+      'Blue',
+      'Green',
+      'Brown',
+      'Beige',
+      'Gold',
+      'Orange',
+      'Yellow',
+      'Burgundy',
+      'Maroon',
+      'Pearl White',
+      'Metallic Gray',
+    ];
+    const merged = Array.from(
+      new Set([...fromDb, ...curated].map((c) => c.trim()).filter(Boolean)),
+    );
+    merged.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+    return { data: merged };
+  }
+
   async getAllDocsByVehicleId(
     fmId: number,
     vehicleId: number,

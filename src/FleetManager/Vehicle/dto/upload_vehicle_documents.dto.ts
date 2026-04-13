@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsArray, ArrayMinSize, IsEnum } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export enum VehicleDocumentType {
   image_coverimg = 'image_coverimg',
@@ -11,6 +12,11 @@ export enum VehicleDocumentType {
 }
 
 export class UploadVehicleDocumentsDto {
+  /** Multer sends a single field as a string, not `string[]`. */
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return [];
+    return Array.isArray(value) ? value : [value];
+  })
   @IsArray()
   @ArrayMinSize(1)
   @IsEnum(VehicleDocumentType, { each: true })

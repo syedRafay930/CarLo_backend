@@ -16,6 +16,27 @@ export class GeminiService implements OnModuleInit {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
 
+  /**
+   * Gemini chat sessions require `history` to start with role `user`, not `model`.
+   * Clients often prepend a local assistant greeting — strip leading `model` turns.
+   * History must end with `model` (or be empty) before `sendMessage(nextUser)`;
+   * strip a trailing orphan `user` (e.g. after a failed reply omitted from history).
+   */
+  private normalizeChatHistory(
+    conversationHistory: Array<{ role: 'user' | 'model'; content: string }>,
+  ): Array<{ role: 'user' | 'model'; content: string }> {
+    const h = conversationHistory.filter((m) => (m.content ?? '').trim().length > 0);
+    let start = 0;
+    while (start < h.length && h[start].role === 'model') {
+      start++;
+    }
+    let end = h.length;
+    while (end > start && h[end - 1].role === 'user') {
+      end--;
+    }
+    return h.slice(start, end);
+  }
+
   async generateResponse(
     systemPrompt: string,
     conversationHistory: Array<{ role: 'user' | 'model'; content: string }>,
@@ -31,7 +52,8 @@ export class GeminiService implements OnModuleInit {
         systemInstruction: systemPrompt,
       });
 
-      const history = conversationHistory.map((msg) => ({
+      const normalized = this.normalizeChatHistory(conversationHistory);
+      const history = normalized.map((msg) => ({
         role: msg.role,
         parts: [{ text: msg.content }],
       }));

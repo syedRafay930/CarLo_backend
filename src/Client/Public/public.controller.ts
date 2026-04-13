@@ -19,6 +19,21 @@ import { CreateVehicleReviewDto } from './dto/create_vehicle_review.dto';
 export class PublicVehicleController {
   constructor(private readonly vehicleService: VehicleService) {}
 
+  @Get('makes')
+  async getPublicVehicleMakes() {
+    return this.vehicleService.getPublicCatalogMakes();
+  }
+
+  @Get('models')
+  async getPublicVehicleModels(@Query('make') make?: string) {
+    return this.vehicleService.getPublicCatalogModels(make);
+  }
+
+  @Get('colors')
+  async getPublicVehicleColors() {
+    return this.vehicleService.getPublicCatalogColors();
+  }
+
   @Get('list')
   async getPublicVehicles(
     @Query('page') page: number,
