@@ -5,10 +5,20 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+    app.enableCors({
+     origin: [
+    'http://127.0.0.1:60036',
+    'http://localhost:3000',
+    'http://localhost:59310'
+  ], 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+  
   app.useGlobalPipes(new ValidationPipe({transform: true,whitelist: true,forbidNonWhitelisted: true}));
 
    const config = new DocumentBuilder()
-        .setTitle('Your API Title') // Customize your API title
+        .setTitle('Carlo API') // Customize your API title
         .setDescription('Your API description') // Customize your API description
         .setVersion('1.0') // Customize your API version
         .addBearerAuth() // Optional: if you use bearer token authentication

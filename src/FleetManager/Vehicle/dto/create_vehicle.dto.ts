@@ -37,6 +37,7 @@ export enum DriverServiceOption {
 export enum PricingModel {
   per_day = 'per_day',
   per_km = 'per_km',
+  per_hr = 'per_hr'
 }
 
 export enum VehicleStatus {
