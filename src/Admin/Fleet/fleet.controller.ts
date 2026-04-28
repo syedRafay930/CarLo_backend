@@ -25,6 +25,7 @@ import { UploadedFiles } from '@nestjs/common';
 import { UploadDocumentsDto } from './dto/upload_documents.dto';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
+import { Multer } from 'multer';
 
 @Controller('admin/fleet')
 export class FleetController {
