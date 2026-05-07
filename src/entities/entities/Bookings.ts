@@ -38,6 +38,9 @@ export class Bookings {
   @Column("character varying", { name: "return_location", length: 255 })
   returnLocation: string;
 
+  @Column("character varying", { name: "payment_status", length: 255 })
+  paymentStatus: string;
+
   @Column("enum", { name: "service_type", enum: ["self_drive", "with_driver"] })
   serviceType: "self_drive" | "with_driver";
 
@@ -46,12 +49,6 @@ export class Bookings {
     enum: ["per_day", "per_km", "per_hr"],
   })
   priceModel: "per_day" | "per_km" | "per_hr";
-
-  @Column("enum", {
-    name: "payment_status",
-    enum: ['pending', 'advance_paid' , 'full_paid'],
-  })
-  paymentStatus: 'pending' | 'advance_paid' | 'full_paid';
 
   @Column("integer", { name: "total_days", nullable: true, default: () => "0" })
   totalDays: number | null;
@@ -123,13 +120,13 @@ export class Bookings {
   })
   status:
     | "pending"
-    | "pending_payment"
     | "confirmed"
     | "rejected"
     | "cancelled"
     | "in_progress"
     | "completed"
-    | "overdue";
+    | "overdue"
+    | "pending_payment";
 
   @Column("timestamp without time zone", {
     name: "actual_return_date",
@@ -175,4 +172,6 @@ export class Bookings {
 
   @OneToMany(() => Transactions, (transactions) => transactions.booking)
   transactions: Transactions[];
+
+
 }

@@ -3,24 +3,25 @@ import {
   Entity,
   Index,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Users } from "./Users";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
 
 @Index("user_favorite_vehicles_pkey", ["id"], { unique: true })
-@Index("user_favorite_vehicles_user_id_key", ["userId"], { unique: true })
-@Index("user_favorite_vehicles_vehicle_id_key", ["vehicleId"], { unique: true })
+@Index("uq_user_favorite_user_vehicle", ["userId", "vehicleId"], {
+  unique: true,
+})
 @Entity("user_favorite_vehicles", { schema: "public" })
 export class UserFavoriteVehicles {
   @PrimaryGeneratedColumn({ type: "integer", name: "id" })
   id: number;
 
-  @Column("integer", { name: "user_id", unique: true })
+  @Column("integer", { name: "user_id" })
   userId: number;
 
-  @Column("integer", { name: "vehicle_id", unique: true })
+  @Column("integer", { name: "vehicle_id" })
   vehicleId: number;
 
   @Column("boolean", { name: "is_active", default: () => "true" })
@@ -32,13 +33,13 @@ export class UserFavoriteVehicles {
   })
   addedAt: Date;
 
-  @OneToOne(() => Users, (users) => users.userFavoriteVehicles, {
+  @ManyToOne(() => Users, (users) => users.userFavoriteVehicles, {
     onDelete: "CASCADE",
   })
   @JoinColumn([{ name: "user_id", referencedColumnName: "id" }])
   user: Users;
 
-  @OneToOne(
+  @ManyToOne(
     () => FleetManagerVehicles,
     (fleetManagerVehicles) => fleetManagerVehicles.userFavoriteVehicles,
     { onDelete: "CASCADE" }

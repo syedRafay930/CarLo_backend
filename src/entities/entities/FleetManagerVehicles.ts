@@ -4,19 +4,18 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
-import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
-import { Admin } from "./Admin";
-import { FleetManagers } from "./FleetManagers";
-import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
-import { FleetManagerUsers } from "./FleetManagerUsers";
-import { Requests } from "./Requests";
-import { VehicleRatings } from "./VehicleRatings";
 import { Bookings } from "./Bookings";
+import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
+import { Admin } from "./Admin";
+import { FleetManagerUsers } from "./FleetManagerUsers";
+import { FleetManagers } from "./FleetManagers";
+import { Requests } from "./Requests";
+import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
+import { VehicleDynamicPricing } from "./VehicleDynamicPricing";
+import { VehicleRatings } from "./VehicleRatings";
 
 @Index("fm_vehicles_chassis_number_key", ["chassisNumber"], { unique: true })
 @Index("fm_vehicles_pkey", ["id"], { unique: true })
@@ -163,7 +162,6 @@ export class FleetManagerVehicles {
   @Column("enum", {
     name: "vehicle_status",
     enum: ["available", "on_rent", "maintenance", "decommissioned"],
-    default: () => "'available'",
   })
   vehicleStatus: "available" | "on_rent" | "maintenance" | "decommissioned";
 
@@ -232,11 +230,11 @@ export class FleetManagerVehicles {
   @OneToMany(() => Requests, (requests) => requests.vehicle)
   requests: Requests[];
 
-  @OneToOne(
+  @OneToMany(
     () => UserFavoriteVehicles,
     (userFavoriteVehicles) => userFavoriteVehicles.vehicle
   )
-  userFavoriteVehicles: UserFavoriteVehicles;
+  userFavoriteVehicles: UserFavoriteVehicles[];
 
   @OneToMany(
     () => VehicleDynamicPricing,
@@ -249,4 +247,5 @@ export class FleetManagerVehicles {
 
   @OneToMany(() => Bookings, (bookings) => bookings.vehicle)
   bookings: Bookings[];
+
 }

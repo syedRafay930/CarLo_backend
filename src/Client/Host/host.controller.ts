@@ -54,7 +54,7 @@ export class HostController {
       this.clientId(req),
       dto,
     );
-    return { message: 'Vehicle added successfully', vehicleId: vehicle.id };
+    return { message: 'Vehicle added successfully', vehicle: vehicle };
   }
 
   @Get('host/my-vehicles')

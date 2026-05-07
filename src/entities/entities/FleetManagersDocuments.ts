@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import { FleetRegistrationApplications } from "./FleetRegistrationApplications";
 import { FleetManagers } from "./FleetManagers";
 import { Admin } from "./Admin";
 
@@ -47,9 +48,6 @@ export class FleetManagersDocuments {
     | "ocr_passed"
     | "ocr_flagged";
 
-  @Column("text", { name: "ocr_result_json", nullable: true })
-  ocrResultJson: string | null;
-
   @Column("timestamp without time zone", {
     name: "verified_at",
     nullable: true,
@@ -74,13 +72,25 @@ export class FleetManagersDocuments {
   })
   updatedAt: Date;
 
+  @Column("text", { name: "ocr_result_json", nullable: true })
+  ocrResultJson: string | null;
+
+  @ManyToOne(
+    () => FleetRegistrationApplications,
+    (fleetRegistrationApplications) =>
+      fleetRegistrationApplications.fleetManagersDocuments,
+    { onDelete: "CASCADE" }
+  )
+  @JoinColumn([{ name: "application_id", referencedColumnName: "id" }])
+  application: FleetRegistrationApplications | null;
+
   @ManyToOne(
     () => FleetManagers,
     (fleetManagers) => fleetManagers.fleetManagersDocuments,
     { onDelete: "CASCADE" }
   )
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
-  fleetManager: FleetManagers;
+  fleetManager: FleetManagers | null;
 
   @ManyToOne(() => Admin, (admin) => admin.fleetManagersDocuments)
   @JoinColumn([{ name: "verified_by", referencedColumnName: "id" }])

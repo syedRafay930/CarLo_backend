@@ -28,6 +28,8 @@ import { EditFleetDto } from './dto/edit_fleet_.dto';
 import { ResolveVehicleRequestDto } from './dto/resolve_vehicle_request.dto';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
 import { VehicleRequestService } from 'src/FleetManager/Vehicle_Request/vehicle_request.service';
+import { Multer } from 'multer';
+import { SubmitApplicationDto } from './dto/submit-application.dto';
 
 @Controller('admin/fleet')
 export class FleetController {
@@ -74,9 +76,9 @@ export class FleetController {
     }
 
     return this.fleetService.uploadDocuments(
-      fleetManagerId,
       files,
       body.documentTypes,
+      fleetManagerId,
     );
   }
 
@@ -235,5 +237,53 @@ export class FleetController {
       search,
       sortOrder,
     );
+  }
+
+  @Post('public/uploadDocuments/:applicationId')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadApplicationDocuments(
+    @Param('applicationId') applicationId: number,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() body: UploadDocumentsDto,
+  ) {
+    if (!files || !files.length)
+      throw new BadRequestException('At least one file is required');
+    if (body.documentTypes.length !== files.length) {
+      throw new BadRequestException(
+        'documentTypes length must match files length',
+      );
+    }
+    return this.fleetService.uploadDocuments(
+      files,
+      body.documentTypes,
+      undefined,
+      applicationId,
+    );
+  }
+
+  @Post('apply')
+  async apply(@Body() dto: SubmitApplicationDto) {
+    return this.fleetService.submitApplication(dto);
+  }
+
+  @Get(':id/status')
+  async status(@Param('id', ParseIntPipe) id: number) {
+    return this.fleetService.getApplicationStatus(id);
+  }
+
+  @Get('subscriptions')
+  async getSubscriptions() {
+    return this.fleetService.getActiveSubscriptions();
+  }
+
+  @Patch(':id/subscription')
+  async selectSubscription(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { subscription_id: number },
+  ) {
+    if (!body.subscription_id) {
+      throw new BadRequestException('subscription_id is required');
+    }
+    return this.fleetService.selectSubscription(id, body.subscription_id);
   }
 }

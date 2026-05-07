@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Bookings } from "./Bookings";
+import { FleetManagers } from "./FleetManagers";
 import { Transactions } from "./Transactions";
 import { UserFavoriteVehicles } from "./UserFavoriteVehicles";
 import { VehicleRatings } from "./VehicleRatings";
@@ -66,14 +67,17 @@ export class Users {
   @OneToMany(() => Bookings, (bookings) => bookings.user)
   bookings: Bookings[];
 
+  @OneToOne(() => FleetManagers, (fleetManagers) => fleetManagers.clientOwner)
+  fleetManagers: FleetManagers;
+
   @OneToMany(() => Transactions, (transactions) => transactions.user)
   transactions: Transactions[];
 
-  @OneToOne(
+  @OneToMany(
     () => UserFavoriteVehicles,
     (userFavoriteVehicles) => userFavoriteVehicles.user
   )
-  userFavoriteVehicles: UserFavoriteVehicles;
+  userFavoriteVehicles: UserFavoriteVehicles[];
 
   @OneToMany(() => VehicleRatings, (vehicleRatings) => vehicleRatings.user)
   vehicleRatings: VehicleRatings[];

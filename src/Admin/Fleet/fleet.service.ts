@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, ILike, Between } from 'typeorm';
@@ -10,20 +11,22 @@ import { FleetManagers } from 'src/entities/entities/FleetManagers';
 import { FleetManagerUsers } from 'src/entities/entities/FleetManagerUsers';
 import { FleetManagerUsersRole } from 'src/entities/entities/FleetManagerUsersRole';
 import { FleetManagersDocuments } from 'src/entities/entities/FleetManagersDocuments';
-import { AddFleetDto } from './dto/add_fleet.dto';
-import { AddFleetUserDto } from './dto/add_fleet_user.dto';
 import { AddFleetWithUserDto } from './dto/add_fleet_with_admin.dto';
 import { RedisService } from '../Auth/redis.service';
 import { MailService } from 'src/Nodemailer/mailer.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-import { AddRoleDto } from '../RBAC/dto/add_adminRole.dto';
 import * as bcrypt from 'bcrypt';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 import { uploadToCloudinary } from 'src/Cloudinary/cloudinary.helper';
 import { EditFleetDto } from './dto/edit_fleet_.dto';
-import { get } from 'http';
+import {
+  FleetRegistrationApplications,
+  ApplicationStatus,
+} from 'src/entities/entities/FleetRegistrationApplications';
+import { SubmitApplicationDto } from './dto/submit-application.dto';
+import { Subscriptions } from 'src/entities/entities/Subscriptions';
 
 @Injectable()
 export class FleetService {
@@ -36,6 +39,10 @@ export class FleetService {
     private fleetUserRoleRepository: Repository<FleetManagerUsersRole>,
     @InjectRepository(FleetManagersDocuments)
     private fleetDocumentRepository: Repository<FleetManagersDocuments>,
+    @InjectRepository(FleetRegistrationApplications)
+    private readonly appRepo: Repository<FleetRegistrationApplications>,
+    @InjectRepository(Subscriptions)
+    private readonly subscriptionRepository: Repository<Subscriptions>,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -44,8 +51,7 @@ export class FleetService {
     private dataSource: DataSource,
   ) {}
 
-
-  async getFleetById(fleetId: number){
+  async getFleetById(fleetId: number) {
     const fleet = await this.fleetRepository.findOne({
       where: { id: fleetId },
     });
@@ -113,7 +119,8 @@ export class FleetService {
         !!dto.user.Password && dto.user.Password.trim().length >= 8;
       const plainPassword = passwordWasSet
         ? dto.user.Password!.trim()
-        : Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
+        : Math.random().toString(36).slice(-8) +
+          Math.random().toString(36).slice(-4);
       const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
       const fleetUser = this.fleetUserRepository.create({
@@ -149,10 +156,12 @@ export class FleetService {
         },
         ...(passwordWasSet ? {} : { tempPassword: plainPassword }),
       };
-    } catch (error) {
+    } catch (error: unknown) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(
-        error?.message || 'Failed to create company with user',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create company with user',
       );
     } finally {
       await queryRunner.release();
@@ -202,16 +211,34 @@ export class FleetService {
   }
 
   async uploadDocuments(
-    fleetManagerId: number,
     files: Express.Multer.File[],
     documentTypes: string[],
+    fleetManagerId?: number,
+    applicationId?: number,
   ) {
-    const fleetManager = await this.fleetRepository.findOne({
-      where: { id: fleetManagerId },
-    });
+    if (!fleetManagerId && !applicationId) {
+      throw new BadRequestException(
+        'Either fleetManagerId or applicationId is required',
+      );
+    }
+    let fleetManager: FleetManagers | null = null;
 
-    if (!fleetManager) {
-      throw new NotFoundException('Fleet Manager not found');
+    if (fleetManagerId) {
+      fleetManager = await this.fleetRepository.findOne({
+        where: { id: fleetManagerId },
+      });
+      if (!fleetManager) throw new NotFoundException('Fleet Manager not found');
+    }
+
+    let application: FleetRegistrationApplications | null = null;
+    if (applicationId) {
+      application = await this.appRepo.findOne({
+        where: { id: applicationId },
+      });
+      if (!application) throw new NotFoundException('Application not found');
+      if (application.status === ApplicationStatus.APPROVED) {
+        throw new BadRequestException('Application already approved');
+      }
     }
 
     const uploadPromises = files.map((file) => uploadToCloudinary(file));
@@ -219,7 +246,8 @@ export class FleetService {
 
     const documentEntities = uploadedResults.map((uploaded, index) => {
       return this.fleetDocumentRepository.create({
-        fleetManager,
+        fleetManager: fleetManager ?? null,
+        application: application ?? null,
         documentType: documentTypes[index],
         documentUrl: uploaded.secure_url,
         verificationStatus: 'pending',
@@ -414,4 +442,113 @@ export class FleetService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  async submitApplication(dto: SubmitApplicationDto) {
+    const existing = await this.appRepo.findOne({
+      where: { email: dto.email },
+    });
+
+    if (existing) {
+      if (existing.status === ApplicationStatus.REJECTED) {
+        await this.appRepo.update(existing.id, {
+          businessName: dto.business_name,
+          ownerFirstName: dto.owner_first_name,
+          ownerLastName: dto.owner_last_name,
+          contact: dto.contact,
+          city: dto.city ?? null,
+          state: dto.state ?? null,
+          country: dto.country ?? 'Pakistan',
+          address: dto.address ?? null,
+          fleetType: dto.fleet_type,
+          estimatedVehicles: dto.estimated_vehicles ?? null,
+          status: ApplicationStatus.PENDING,
+          rejectionReason: null,
+          reviewedBy: null,
+          reviewedAt: null,
+          updatedAt: new Date(),
+        });
+        return {
+          application_id: existing.id,
+          message: 'Application resubmitted successfully',
+        };
+      }
+
+      throw new ConflictException(
+        'An application with this email already exists',
+      );
+    }
+
+    const application = this.appRepo.create({
+      businessName: dto.business_name,
+      ownerFirstName: dto.owner_first_name,
+      ownerLastName: dto.owner_last_name,
+      email: dto.email,
+      contact: dto.contact,
+      city: dto.city ?? null,
+      state: dto.state ?? null,
+      country: dto.country ?? 'Pakistan',
+      address: dto.address ?? null,
+      fleetType: dto.fleet_type,
+      estimatedVehicles: dto.estimated_vehicles ?? null,
+      status: ApplicationStatus.PENDING,
+    });
+
+    const saved = await this.appRepo.save(application);
+    return {
+      application_id: saved.id,
+      message: 'Application submitted successfully',
+    };
+  }
+
+  async getApplicationStatus(applicationId: number) {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+      select: ['id', 'businessName', 'status', 'rejectionReason', 'createdAt'],
+    });
+
+    if (!application) throw new NotFoundException('Application not found');
+
+    return application;
+  }
+
+  async getActiveSubscriptions() {
+    const subs = await this.subscriptionRepository.find({
+      where: { isActive: true },
+      order: { monthlyPrice: 'ASC' },
+    });
+
+    return subs.map((s) => ({
+      id: s.id,
+      name: s.name,
+      monthlyPrice: Number(s.monthlyPrice),
+      description: s.description,
+      maxUsers: s.maxUsers,
+      maxVehicles: s.maxVehicles,
+      isPrioritySupport: s.isPrioritySupport,
+      allowsAiVerification: s.allowsAiVerification,
+    }));
+  }
+
+  async selectSubscription(applicationId: number, subscriptionId: number) {
+  const application = await this.appRepo.findOne({
+    where: { id: applicationId },
+  })
+  if (!application) throw new NotFoundException('Application not found')
+
+  if (application.status === ApplicationStatus.APPROVED) {
+    throw new BadRequestException('Application already approved')
+  }
+
+  const subscription = await this.subscriptionRepository.findOne({
+    where: { id: subscriptionId, isActive: true },
+  })
+  if (!subscription) throw new NotFoundException('Subscription not found')
+
+  await this.appRepo.update(applicationId, {
+    subscriptions: subscription,
+    updatedAt: new Date(),
+  })
+
+  return { message: 'Subscription selected successfully' }
+}
 }

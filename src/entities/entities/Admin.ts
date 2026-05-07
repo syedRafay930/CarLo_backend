@@ -15,6 +15,7 @@ import { FleetManagerVehicles } from "./FleetManagerVehicles";
 import { FleetManagers } from "./FleetManagers";
 import { FleetManagersDocuments } from "./FleetManagersDocuments";
 import { FleetNotifications } from "./FleetNotifications";
+import { FleetRegistrationApplications } from "./FleetRegistrationApplications";
 import { Requests } from "./Requests";
 
 @Index("UQ_386657905f0fdeabc53555beba3", ["email"], { unique: true })
@@ -101,6 +102,12 @@ export class Admin {
     (fleetNotifications) => fleetNotifications.sender
   )
   fleetNotifications: FleetNotifications[];
+
+  @OneToMany(
+    () => FleetRegistrationApplications,
+    (fleetRegistrationApplications) => fleetRegistrationApplications.reviewedBy
+  )
+  fleetRegistrationApplications: FleetRegistrationApplications[];
 
   @OneToMany(() => Requests, (requests) => requests.adminRespondedBy)
   requests: Requests[];

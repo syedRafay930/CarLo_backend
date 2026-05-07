@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Bookings } from "./Bookings";
@@ -12,12 +13,13 @@ import { FleetManagerSubscriptions } from "./FleetManagerSubscriptions";
 import { FleetManagerUsers } from "./FleetManagerUsers";
 import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
+import { Users } from "./Users";
 import { Admin } from "./Admin";
 import { FleetManagersDocuments } from "./FleetManagersDocuments";
 import { FmRolePermissions } from "./FmRolePermissions";
 import { Requests } from "./Requests";
-import { Users } from "./Users";
 
+@Index("uq_fleet_managers_client_owner_id", ["clientOwnerId"], { unique: true })
 @Index("fleet_managers_pkey", ["id"], { unique: true })
 @Entity("fleet_managers", { schema: "public" })
 export class FleetManagers {
@@ -68,11 +70,6 @@ export class FleetManagers {
   @Column("integer", { name: "subscription_id", nullable: true })
   subscriptionId: number | null;
 
-  /** Client (customer) who registered as an individual host — one fleet per client. */
-  @ManyToOne(() => Users, { nullable: true, onDelete: "SET NULL" })
-  @JoinColumn([{ name: "client_owner_id", referencedColumnName: "id" }])
-  clientOwner: Users | null;
-
   @Column("timestamp without time zone", {
     name: "created_at",
     default: () => "now()",
@@ -85,6 +82,9 @@ export class FleetManagers {
     default: () => "now()",
   })
   updatedAt: Date | null;
+
+  @Column("integer", { name: "client_owner_id", nullable: true })
+  clientOwnerId: number | null;
 
   @OneToMany(() => Bookings, (bookings) => bookings.fleetManager)
   bookings: Bookings[];
@@ -112,6 +112,12 @@ export class FleetManagers {
     (fleetManagerVehicles) => fleetManagerVehicles.fleetManager
   )
   fleetManagerVehicles: FleetManagerVehicles[];
+
+  @OneToOne(() => Users, (users) => users.fleetManagers, {
+    onDelete: "SET NULL",
+  })
+  @JoinColumn([{ name: "client_owner_id", referencedColumnName: "id" }])
+  clientOwner: Users;
 
   @ManyToOne(() => Admin, (admin) => admin.fleetManagers)
   @JoinColumn([{ name: "created_by", referencedColumnName: "id" }])

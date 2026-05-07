@@ -39,7 +39,7 @@ export class VehicleController {
 
     return {
       message: 'Vehicle added successfully',
-      vehicleId: vehicle.id,
+      vehicle: vehicle,
     };
   }
 

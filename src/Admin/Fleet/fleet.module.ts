@@ -12,6 +12,8 @@ import { CloudinaryModule } from 'src/Cloudinary/cloudinary.module';
 import { CloudinaryProvider } from 'src/Cloudinary/cloudinary.provider';
 import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
 import { VehicleRequestModule } from 'src/FleetManager/Vehicle_Request/vehicle_request.module';
+import { FleetRegistrationApplications } from 'src/entities/entities/FleetRegistrationApplications';
+import { Subscriptions } from 'src/entities/entities/Subscriptions';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { VehicleRequestModule } from 'src/FleetManager/Vehicle_Request/vehicle_r
       FleetManagerUsers,
       FleetManagerUsersRole,
       FleetManagersDocuments,
+      FleetRegistrationApplications,
+      Subscriptions,
     ]),
     AuthModule,
     MailModule,
