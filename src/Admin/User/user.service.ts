@@ -120,7 +120,7 @@ export class UsersService {
     await this.mailService.sendTemplatedMail(
       users.email,
       'You’ve been invited to CarLo-Admin!',
-      'user-invitation',
+      'user_invitation',
       {
         username: users.firstName,
         userId: users.email,

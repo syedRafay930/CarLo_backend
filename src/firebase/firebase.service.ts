@@ -9,10 +9,9 @@ import * as admin from 'firebase-admin';
 import { AdminFcmTokens } from 'src/entities/entities/AdminFcmTokens';
 import { FleetFcmTokens } from 'src/entities/entities/FleetFcmTokens';
 import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
-
 import { SaveFcmTokenDto } from './dto/save-fcm-token.dto';
-
 import { UsersService } from 'src/Admin/User/user.service';
+
 @Injectable()
 export class FirebaseService {
   constructor(
@@ -31,10 +30,11 @@ export class FirebaseService {
   async saveAdminFcmToken(dto: SaveFcmTokenDto) {
     const existing = await this.adminfcmRepo.findOne({
       where: { token: dto.token },
+      relations: ['admin'],
     });
 
     if (existing) {
-      existing.admin.id = dto.user_id;
+      existing.admin = { id: dto.user_id } as any;
       existing.platform = dto.platform as 'web' | 'android' | 'ios';
       existing.isActive = true;
       existing.updatedAt = new Date();
@@ -55,10 +55,11 @@ export class FirebaseService {
   async saveFleetFcmToken(dto: SaveFcmTokenDto) {
     const existing = await this.fleetfcmRepo.findOne({
       where: { token: dto.token },
+      relations: ['fleetUser'],
     });
 
     if (existing) {
-      existing.fleetUser.id = dto.user_id;
+      existing.fleetUser = { id: dto.user_id } as any;
       existing.platform = dto.platform as 'web' | 'android' | 'ios';
       existing.isActive = true;
       existing.updatedAt = new Date();
@@ -120,6 +121,7 @@ export class FirebaseService {
     title: string;
     body: string;
     request_id?: number;
+    application_id?: number;  
     sender_id?: number;
     type?: string;
     redirect_url?: string;
@@ -137,6 +139,7 @@ export class FirebaseService {
         receiver: { id: adminId },
         sender: dto.sender_id ? { id: dto.sender_id } : null,
         request: dto.request_id ? { id: dto.request_id } : null,
+        application: dto.application_id ? { id: dto.application_id } : null,
         createdAt: new Date(),
       } as AdminNotifications);
     });

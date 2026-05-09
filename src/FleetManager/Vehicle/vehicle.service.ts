@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
@@ -15,6 +16,8 @@ import { VehicleDocumentType } from './dto/upload_vehicle_documents.dto';
 import { EditVehicleDto } from './dto/edit_vehicle.dto';
 import { DynamicPricingService } from 'src/DynamicPricing/dynamic-pricing.service';
 // import { SubscriptionService } from '../subscription/subscription.service';
+import axios from 'axios';
+import FormData from 'form-data';
 
 @Injectable()
 export class VehicleService {
@@ -77,6 +80,7 @@ export class VehicleService {
     vehicleId: number,
     files: Express.Multer.File[],
     documentTypes: string[],
+    aiResult?: any,
   ) {
     const vehicle = await this.vehiclesRepository.findOne({
       where: { id: vehicleId },
@@ -90,21 +94,32 @@ export class VehicleService {
     const uploadedResults = await Promise.all(uploadPromises);
 
     const documentEntities = uploadedResults.map((uploaded, index) => {
-      const docTypeString = documentTypes[index];
+      const docType = documentTypes[index];
+      const isRegPaper = docType === 'registration_paper';
+
       return this.documentRepository.create({
         vehicle: vehicle,
-        docType: docTypeString as VehicleDocumentType,
+        docType: docType as VehicleDocumentType,
         documentUrl: uploaded.secure_url,
-        verificationStatus: 'pending',
+        verificationStatus: aiResult
+          ? aiResult.success
+            ? 'ocr_passed'
+            : 'ocr_flagged'
+          : 'pending',
+        verificationResult:
+          isRegPaper && aiResult ? JSON.stringify(aiResult.ai_result) : null,
+        extractedPlateNumber:
+          isRegPaper && aiResult
+            ? aiResult.ai_result?.license_plate?.ocr_extracted || null
+            : null,
+        extractedChassisNumber:
+          isRegPaper && aiResult
+            ? aiResult.ai_result?.chassis_number?.ocr_extracted || null
+            : null,
         createdAt: new Date(),
       });
     });
-
-    // 4. **AI/OCR Trigger**
-    // Background worker ko call karein taake woh Google Vision API se OCR shuru kare
-    // Misal: this.aiVerificationService.triggerOcr(docEntity.id, uploaded.secure_url);
-
-    // Saare documents ko database mein save karein
+    
     const savedDocuments = await this.documentRepository.save(documentEntities);
 
     return savedDocuments.map((doc) => ({
@@ -259,10 +274,15 @@ export class VehicleService {
 
     const cleanedData = data.map((vehicle) => {
       const vehicleWithRelations = vehicle as any;
-      const coverImage = vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl || null;
+      const coverImage =
+        vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl ||
+        null;
 
       const ratingsArray = vehicleWithRelations.vehicleRatings || [];
-      const totalRatingSum = ratingsArray.reduce((sum, review) => sum + review.rating, 0);
+      const totalRatingSum = ratingsArray.reduce(
+        (sum, review) => sum + review.rating,
+        0,
+      );
       const reviewCount = ratingsArray.length;
       const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
 
@@ -472,9 +492,7 @@ export class VehicleService {
     };
   }
 
-  /**
-   * Distinct vehicle makes in the public catalog (same visibility as `getPublicCatalogVehicles`).
-   */
+  /** Distinct makes from catalog plus common defaults. */
   async getPublicCatalogMakes(): Promise<{ data: string[] }> {
     const rows = await this.vehiclesRepository
       .createQueryBuilder('vehicle')
@@ -488,20 +506,50 @@ export class VehicleService {
       .orderBy('vehicle.make', 'ASC')
       .getRawMany();
 
-    const data = rows
+    const fromDb = rows
       .map((r: { make?: string }) => String(r.make ?? '').trim())
-      .filter((m) => m.length > 0);
-    return { data };
+      .filter(Boolean);
+
+    // Common brands for Pakistan market/Global
+    const defaultMakes = [
+      'Toyota',
+      'Honda',
+      'Suzuki',
+      'Kia',
+      'Hyundai',
+      'Mitsubishi',
+      'Nissan',
+      'MG',
+      'Changan',
+      'Proton',
+      'Mercedes-Benz',
+      'BMW',
+      'Audi',
+      'Lexus',
+    ];
+
+    const merged = Array.from(
+      new Set(
+        [...fromDb, ...defaultMakes].map((m) => m.trim()).filter(Boolean),
+      ),
+    );
+
+    merged.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+
+    return { data: merged };
   }
 
   /**
-   * Distinct models in the public catalog for a given make (case-insensitive).
+   * Distinct models from catalog plus defaults for a given make.
    */
   async getPublicCatalogModels(make?: string): Promise<{ data: string[] }> {
     if (!make?.trim()) {
       return { data: [] };
     }
-    const trimmed = make.trim();
+    const trimmedMake = make.trim();
+
     const rows = await this.vehiclesRepository
       .createQueryBuilder('vehicle')
       .select('vehicle.model', 'model')
@@ -510,17 +558,51 @@ export class VehicleService {
       .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
       .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' })
       .andWhere('LOWER(TRIM(vehicle.make)) = LOWER(TRIM(:make))', {
-        make: trimmed,
+        make: trimmedMake,
       })
       .andWhere('vehicle.model IS NOT NULL')
       .andWhere("TRIM(vehicle.model) <> ''")
       .orderBy('vehicle.model', 'ASC')
       .getRawMany();
 
-    const data = rows
+    const fromDb = rows
       .map((r: { model?: string }) => String(r.model ?? '').trim())
-      .filter((m) => m.length > 0);
-    return { data };
+      .filter(Boolean);
+
+    // Default models mapping base on make
+    const defaultModelsMap: Record<string, string[]> = {
+      toyota: [
+        'Corolla',
+        'Yaris',
+        'Fortuner',
+        'Hilux',
+        'Prado',
+        'Camry',
+        'Land Cruiser',
+      ],
+      honda: ['Civic', 'City', 'BR-V', 'Accord', 'HR-V'],
+      suzuki: ['Alto', 'Cultus', 'Swift', 'Wagon R', 'Bolan', 'Jimny'],
+      kia: ['Sportage', 'Picanto', 'Stonic', 'Sorento'],
+      hyundai: ['Elantra', 'Sonata', 'Tucson', 'Santa Fe'],
+      changan: ['Alsvin', 'Karvaan', 'Oshan X7'],
+      mg: ['HS', 'ZS', 'MG3', 'MG4'],
+    };
+
+    // User jo select karega uske mutabiq defaults uthayenge
+    const lowerMake = trimmedMake.toLowerCase();
+    const defaultModels = defaultModelsMap[lowerMake] ?? [];
+
+    const merged = Array.from(
+      new Set(
+        [...fromDb, ...defaultModels].map((m) => m.trim()).filter(Boolean),
+      ),
+    );
+
+    merged.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+
+    return { data: merged };
   }
 
   /** Distinct colors from catalog plus common defaults for empty DB. */
@@ -663,10 +745,12 @@ export class VehicleService {
     }));
 
     const ratingsArray = vehicle.vehicleRatings || [];
-    const totalRatingSum = ratingsArray.reduce((sum, review) => sum + (review.rating ?? 0), 0);
+    const totalRatingSum = ratingsArray.reduce(
+      (sum, review) => sum + (review.rating ?? 0),
+      0,
+    );
     const reviewCount = ratingsArray.length;
     const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
-
 
     return {
       ...vehicle,
@@ -701,10 +785,12 @@ export class VehicleService {
       createdAt: rev.createdAt,
     }));
     const ratingsArray = vehicle.vehicleRatings || [];
-    const totalRatingSum = ratingsArray.reduce((sum, review) => sum + (review.rating ?? 0), 0);
+    const totalRatingSum = ratingsArray.reduce(
+      (sum, review) => sum + (review.rating ?? 0),
+      0,
+    );
     const reviewCount = ratingsArray.length;
     const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
-
 
     return {
       vehicleId: vehicle.id,
@@ -776,11 +862,62 @@ export class VehicleService {
         msg.includes('duplicate key') ||
         msg.includes('uq_user_vehicle_rating')
       ) {
-        throw new ConflictException(
-          'You have already reviewed this vehicle.',
-        );
+        throw new ConflictException('You have already reviewed this vehicle.');
       }
       throw err;
+    }
+  }
+
+  async verifyVehicleDocuments(
+    fileMap: Record<string, Express.Multer.File>,
+    licensePlate: string,
+    chassisNumber: string,
+  ) {
+    const form = new FormData();
+
+    form.append(
+      'image_exterior_front',
+      fileMap['image_exterior_front'].buffer,
+      {
+        filename: 'front.jpg',
+        contentType: fileMap['image_exterior_front'].mimetype,
+      },
+    );
+    form.append('image_exterior_back', fileMap['image_exterior_back'].buffer, {
+      filename: 'back.jpg',
+      contentType: fileMap['image_exterior_back'].mimetype,
+    });
+    form.append('image_exterior_left', fileMap['image_exterior_left'].buffer, {
+      filename: 'left.jpg',
+      contentType: fileMap['image_exterior_left'].mimetype,
+    });
+    form.append(
+      'image_exterior_right',
+      fileMap['image_exterior_right'].buffer,
+      {
+        filename: 'right.jpg',
+        contentType: fileMap['image_exterior_right'].mimetype,
+      },
+    );
+    form.append('registration_paper', fileMap['registration_paper'].buffer, {
+      filename: 'reg_paper.jpg',
+      contentType: fileMap['registration_paper'].mimetype,
+    });
+    form.append('license_plate', licensePlate);
+    form.append('chassis_number', chassisNumber || '');
+
+    try {
+      const { data } = await axios.post(
+        `${'http://localhost:8000'}/verify-vehicle-documents`,
+        form,
+        { headers: form.getHeaders() },
+      );
+      return data;
+    } catch (err: any) {
+      const errData = err?.response?.data;
+      throw new BadRequestException(
+        errData?.message || 'Vehicle verification failed',
+      );
     }
   }
 }

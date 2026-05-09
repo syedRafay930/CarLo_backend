@@ -4,6 +4,8 @@ import { Transform } from 'class-transformer';
 export enum VehicleDocumentType {
   image_coverimg = 'image_coverimg',
   image_exterior_front = 'image_exterior_front',
+  image_exterior_left = 'image_exterior_left',
+  image_exterior_right = 'image_exterior_right',
   image_exterior_back = 'image_exterior_back',
   registration_paper = 'registration_paper',
   insurance_paper = 'insurance_paper',
@@ -12,7 +14,6 @@ export enum VehicleDocumentType {
 }
 
 export class UploadVehicleDocumentsDto {
-  /** Multer sends a single field as a string, not `string[]`. */
   @Transform(({ value }) => {
     if (value === undefined || value === null || value === '') return [];
     return Array.isArray(value) ? value : [value];

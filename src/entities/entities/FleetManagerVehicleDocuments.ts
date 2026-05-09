@@ -20,6 +20,8 @@ export class FleetManagerVehicleDocuments {
     enum: [
       "image_coverimg",
       "image_exterior_front",
+      "image_exterior_left",
+      "image_exterior_right",
       "image_exterior_back",
       "image_interior",
       "registration_paper",
@@ -31,6 +33,8 @@ export class FleetManagerVehicleDocuments {
   docType:
     | "image_coverimg"
     | "image_exterior_front"
+    | "image_exterior_left"
+    | "image_exterior_right"
     | "image_exterior_back"
     | "image_interior"
     | "registration_paper"
@@ -52,11 +56,11 @@ export class FleetManagerVehicleDocuments {
   extractedPlateNumber: string | null;
 
   @Column("character varying", {
-    name: "extracted_reg_number",
+    name: "extracted_chassis_number",
     nullable: true,
     length: 50,
   })
-  extractedRegNumber: string | null;
+  extractedChassisNumber: string | null;
 
   @Column("boolean", {
     name: "is_metadata_clean",
@@ -85,8 +89,8 @@ export class FleetManagerVehicleDocuments {
     | "ocr_passed"
     | "ocr_flagged";
 
-  @Column("text", { name: "verification_notes", nullable: true })
-  verificationNotes: string | null;
+  @Column("text", { name: "verification_result", nullable: true })
+  verificationResult: string | null;
 
   @Column("timestamp without time zone", {
     name: "verified_at",

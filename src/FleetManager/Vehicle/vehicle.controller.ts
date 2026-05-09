@@ -51,28 +51,56 @@ export class VehicleController {
     @UploadedFiles() files: Express.Multer.File[],
     @Body() body: UploadVehicleDocumentsDto,
   ) {
-    if (!files || !files.length) {
-      throw new BadRequestException(
-        'At least one file is required to upload documents.',
-      );
-    }
-
-    if (body.documentTypes.length !== files.length) {
+    if (!files || !files.length)
+      throw new BadRequestException('At least one file is required.');
+    if (body.documentTypes.length !== files.length)
       throw new BadRequestException(
         'documentTypes length must match files length',
       );
-    }
 
-    const results = await this.vehicleService.uploadVehicleDocuments(
-      vehicleId,
-      files,
-      body.documentTypes,
+    // Files ko type se map karo
+    const fileMap: Record<string, Express.Multer.File> = {};
+    files.forEach((file, index) => {
+      fileMap[body.documentTypes[index]] = file;
+    });
+
+    // Zaruri files check
+    const requiredForVerification = [
+      'image_exterior_front',
+      'image_exterior_back',
+      'image_exterior_left',
+      'image_exterior_right',
+      'registration_paper',
+    ];
+
+    const hasAllRequired = requiredForVerification.every(
+      (type) => fileMap[type],
     );
 
-    return {
-      message: 'Documents uploaded successfully',
-      details: results,
-    };
+    if (hasAllRequired) {
+      const vehicle = await this.vehicleService.getVehicleById(vehicleId);
+      
+      const aiFileMap: Record<string, Express.Multer.File> = {
+        image_exterior_front: fileMap['image_exterior_front'],
+        image_exterior_back: fileMap['image_exterior_back'],
+        image_exterior_left: fileMap['image_exterior_left'],
+        image_exterior_right: fileMap['image_exterior_right'],
+        registration_paper: fileMap['registration_paper'],
+      };
+
+      const aiResult = await this.vehicleService.verifyVehicleDocuments(
+        aiFileMap,
+        vehicle.licensePlate,
+        vehicle.chassisNumber || '',
+      );
+
+      return this.vehicleService.uploadVehicleDocuments(
+        vehicleId,
+        files,
+        body.documentTypes,
+        aiResult, // ← ye add kiya
+      );
+    }
   }
 
   @UseGuards(FMJwtBlacklistGuard)

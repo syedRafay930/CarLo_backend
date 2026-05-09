@@ -13,6 +13,7 @@ import { AllocationModule } from './Allocation/allocation.module';
 import { DynamicPricingModule } from './DynamicPricing/dynamic-pricing.module';
 import { OcrModule } from './OCR/ocr.module';
 import { AnalyticsModule } from './Analytics/analytics.module';
+import { NotificationModule } from './Admin/notification/notification.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AnalyticsModule } from './Analytics/analytics.module';
     DynamicPricingModule,
     OcrModule,
     AnalyticsModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}

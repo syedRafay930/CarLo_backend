@@ -48,9 +48,12 @@ export class SubmitApplicationDto {
   @IsEnum(FleetManagerType)
   fleet_type: FleetManagerType
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Type(() => Number)
-  estimated_vehicles?: number
+
+  @IsNotEmpty()
+  @IsString()
+  cnic: string
+
+  @IsNotEmpty()
+  @IsString()
+  reg_number: string
 }

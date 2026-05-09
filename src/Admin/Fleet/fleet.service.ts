@@ -27,6 +27,9 @@ import {
 } from 'src/entities/entities/FleetRegistrationApplications';
 import { SubmitApplicationDto } from './dto/submit-application.dto';
 import { Subscriptions } from 'src/entities/entities/Subscriptions';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import axios from 'axios';
+import FormData from 'form-data';
 
 @Injectable()
 export class FleetService {
@@ -49,6 +52,7 @@ export class FleetService {
     private redisService: RedisService,
     private mailService: MailService,
     private dataSource: DataSource,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async getFleetById(fleetId: number) {
@@ -449,7 +453,7 @@ export class FleetService {
     });
 
     if (existing) {
-      if (existing.status === ApplicationStatus.REJECTED) {
+      if (existing.status === ApplicationStatus.REJECTED || existing.status === ApplicationStatus.PENDING) {
         await this.appRepo.update(existing.id, {
           businessName: dto.business_name,
           ownerFirstName: dto.owner_first_name,
@@ -460,7 +464,8 @@ export class FleetService {
           country: dto.country ?? 'Pakistan',
           address: dto.address ?? null,
           fleetType: dto.fleet_type,
-          estimatedVehicles: dto.estimated_vehicles ?? null,
+          cnic: dto.cnic,
+          regNumber: dto.reg_number,
           status: ApplicationStatus.PENDING,
           rejectionReason: null,
           reviewedBy: null,
@@ -489,7 +494,8 @@ export class FleetService {
       country: dto.country ?? 'Pakistan',
       address: dto.address ?? null,
       fleetType: dto.fleet_type,
-      estimatedVehicles: dto.estimated_vehicles ?? null,
+      cnic: dto.cnic,
+      regNumber: dto.reg_number,
       status: ApplicationStatus.PENDING,
     });
 
@@ -530,25 +536,124 @@ export class FleetService {
   }
 
   async selectSubscription(applicationId: number, subscriptionId: number) {
-  const application = await this.appRepo.findOne({
-    where: { id: applicationId },
-  })
-  if (!application) throw new NotFoundException('Application not found')
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+    });
+    if (!application) throw new NotFoundException('Application not found');
 
-  if (application.status === ApplicationStatus.APPROVED) {
-    throw new BadRequestException('Application already approved')
+    if (application.status === ApplicationStatus.APPROVED) {
+      throw new BadRequestException('Application already approved');
+    }
+
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: subscriptionId, isActive: true },
+    });
+    if (!subscription) throw new NotFoundException('Subscription not found');
+
+    await this.appRepo.update(applicationId, {
+      subscriptions: subscription,
+      updatedAt: new Date(),
+    });
+    try {
+      await this.firebaseService.saveAndSendNotificationToAdmins({
+        title: '🏢 New Dealership Application',
+        body: `${application.businessName} has submitted a registration request. Review and verify documents.`,
+        application_id: application.id,
+        type: 'shop_registration',
+        redirect_url: `/applications/${application.id}`,
+      });
+    } catch {
+      console.error('Notification failed for application:', application.id);
+    }
+
+    return { message: 'Subscription selected successfully' };
   }
 
-  const subscription = await this.subscriptionRepository.findOne({
-    where: { id: subscriptionId, isActive: true },
-  })
-  if (!subscription) throw new NotFoundException('Subscription not found')
+  async getAllApplications(query: {
+    page: number;
+    limit: number;
+    status?: string;
+    search?: string;
+  }) {
+    const { page = 1, limit = 20, status, search } = query;
 
-  await this.appRepo.update(applicationId, {
-    subscriptions: subscription,
-    updatedAt: new Date(),
-  })
+    const qb = this.appRepo
+      .createQueryBuilder('app')
+      .leftJoinAndSelect('app.reviewedBy', 'reviewedBy')
+      .leftJoinAndSelect('app.fleetManagersDocuments', 'docs')
+      .orderBy('app.createdAt', 'DESC');
 
-  return { message: 'Subscription selected successfully' }
-}
+    if (status) {
+      qb.andWhere('app.status = :status', { status });
+    }
+
+    if (search) {
+      qb.andWhere(
+        `(app.businessName ILIKE :s OR app.email ILIKE :s OR app.contact ILIKE :s)`,
+        { s: `%${search}%` },
+      );
+    }
+
+    const [data, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getApplicationById(id: number) {
+    const app = await this.appRepo.findOne({
+      where: { id },
+      relations: ['reviewedBy', 'fleetManagersDocuments'],
+    });
+    if (!app) throw new NotFoundException('Application not found');
+    return app;
+  }
+
+  async verifyFleetDocuments(
+    cnicFront: Express.Multer.File,
+    cnicBack: Express.Multer.File,
+    shopPaper: Express.Multer.File,
+    regNumber: string | null,
+    cnicNumber: string | null,
+  ) {
+    const form = new FormData();
+
+    form.append('cnic_front', cnicFront.buffer, {
+      filename: 'cnic_front.jpg',
+      contentType: cnicFront.mimetype,
+    });
+    form.append('cnic_back', cnicBack.buffer, {
+      filename: 'cnic_back.jpg',
+      contentType: cnicBack.mimetype,
+    });
+    form.append('shop_paper', shopPaper.buffer, {
+      filename: 'shop_paper.jpg',
+      contentType: shopPaper.mimetype,
+    });
+    form.append('reg_number', regNumber);
+    form.append('cnic_number', cnicNumber);
+
+    try {
+      const { data } = await axios.post(
+        `${'http://localhost:8000'}/verify-fleet-application`,
+        form,
+        { headers: form.getHeaders() },
+      );
+      return data;
+    } catch (err: any) {
+      const msg =
+        err?.response?.data || 'Document verification failed';
+      throw new BadRequestException(msg);
+    }
+  }
 }

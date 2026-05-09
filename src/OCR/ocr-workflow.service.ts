@@ -66,7 +66,7 @@ export class OcrWorkflowService {
       documentUrl: d.documentUrl,
       verificationStatus: d.verificationStatus,
       extractedData: d.extractedData,
-      verificationNotes: d.verificationNotes,
+      verificationResult: d.verificationResult,
       createdAt: d.createdAt,
       fleetId: d.vehicle?.fleetManager?.id,
       fleetName: d.vehicle?.fleetManager?.name ?? '—',
@@ -93,7 +93,7 @@ export class OcrWorkflowService {
       docType: d.documentType,
       documentUrl: d.documentUrl,
       verificationStatus: d.verificationStatus,
-      ocrResultJson: d.ocrResultJson,
+      aiResultJson: d.aiResultJson,
       rejectionReason: d.rejectionReason,
       createdAt: d.createdAt,
       fleetId: d.fleetManager?.id,
@@ -126,7 +126,7 @@ export class OcrWorkflowService {
       documentUrl: d.documentUrl,
       verificationStatus: d.verificationStatus,
       extractedData: d.extractedData,
-      verificationNotes: d.verificationNotes,
+      verificationResult: d.verificationResult,
       createdAt: d.createdAt,
       fleetId: d.vehicle?.fleetManager?.id,
       fleetName: d.vehicle?.fleetManager?.name ?? '—',
@@ -153,7 +153,7 @@ export class OcrWorkflowService {
       docType: d.documentType,
       documentUrl: d.documentUrl,
       verificationStatus: d.verificationStatus,
-      ocrResultJson: d.ocrResultJson,
+      aiResultJson: d.aiResultJson,
       rejectionReason: d.rejectionReason,
       createdAt: d.createdAt,
       fleetId: d.fleetManager?.id,
@@ -302,7 +302,7 @@ export class OcrWorkflowService {
     } else if (fleetDoc) {
       await this.fleetDocsRepo.update(documentId, {
         verificationStatus: nextStatus,
-        ocrResultJson: JSON.stringify({ ocr: ocrPayload }),
+        aiResultJson: JSON.stringify({ ocr: ocrPayload }),
       });
     }
 
@@ -325,7 +325,7 @@ export class OcrWorkflowService {
     if (v) {
       await this.docsRepo.update(documentId, {
         verificationStatus: 'verified',
-        verificationNotes: notes ?? v.verificationNotes,
+        verificationResult: notes ?? v.verificationResult,
         verifiedAt: new Date(),
       });
       return { success: true, message: 'Document approved', scope: 'vehicle' };
@@ -348,7 +348,7 @@ export class OcrWorkflowService {
     if (v) {
       await this.docsRepo.update(documentId, {
         verificationStatus: 'rejected',
-        verificationNotes: reason,
+        verificationResult: reason,
       });
       return { success: true, message: 'Document rejected', scope: 'vehicle' };
     }

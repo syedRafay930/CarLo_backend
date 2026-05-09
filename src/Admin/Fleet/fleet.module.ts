@@ -14,6 +14,7 @@ import { VehicleModule } from 'src/FleetManager/Vehicle/vehicle.module';
 import { VehicleRequestModule } from 'src/FleetManager/Vehicle_Request/vehicle_request.module';
 import { FleetRegistrationApplications } from 'src/entities/entities/FleetRegistrationApplications';
 import { Subscriptions } from 'src/entities/entities/Subscriptions';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Subscriptions } from 'src/entities/entities/Subscriptions';
     ]),
     AuthModule,
     MailModule,
+    FirebaseModule,
     forwardRef(() => VehicleModule),
     forwardRef(() => VehicleRequestModule),
   ],

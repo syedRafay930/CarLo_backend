@@ -72,8 +72,8 @@ export class FleetManagersDocuments {
   })
   updatedAt: Date;
 
-  @Column("text", { name: "ocr_result_json", nullable: true })
-  ocrResultJson: string | null;
+  @Column("text", { name: "ai_result_json", nullable: true })
+  aiResultJson: string | null;
 
   @ManyToOne(
     () => FleetRegistrationApplications,

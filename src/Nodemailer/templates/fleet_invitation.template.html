@@ -2,19 +2,13 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Welcome to CarLo</title>
+    <title>Welcome {{companyName}} to CarLo</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 100px 60px;
-        background: url('https://i.postimg.cc/DwwQTdhS/Whats-App-Image-2025-07-29-at-7-18-47-PM-prev-ui.png')
-          no-repeat center center;
-        background-size: contain;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-color: #f4f4f4;
+        
       }
 
       .parentBody {
@@ -45,6 +39,7 @@
 
       .email-header {
         font-size: 24px;
+        margin: 30px;
         font-weight: bold;
         margin-bottom: 20px;
         color: #333333;
@@ -67,10 +62,7 @@
         font-weight: bold;
         margin-top: 15px;
       }
-      .email-body a{
-        text-decoration: none;
-        color:#ffffff
-      }
+
       @media (max-width: 600px) {
         .parentBody {
           padding: 20px;
@@ -86,25 +78,25 @@
     <div class="parentBody">
       <!-- Logo -->
       <img
-        src="https://i.postimg.cc/DwwQTdhS/Whats-App-Image-2025-07-29-at-7-18-47-PM-prev-ui.png"
+        src="https://i.postimg.cc/d1XTgmd5/image.png"
         alt="Company Logo"
         class="logo"
       />
 
-      <!-- Logo Title -->
-      <div class="logo-title">Trackify</div>
-
       <!-- Email Content -->
-      <div class="email-header">WELCOME "{{companyName}}" to CarLo!</div>
+      <div class="email-header">Welcome to CarLo, {{companyName}}!</div>
 
       <div class="email-body">
         <p>Hi <strong>{{username}}</strong>,</p>
-        <br />
         <p>
-          Please click the button below to reset your password and activate your account:
+          You’ve been added to the CarLo platform by an administrator.
         </p>
-        <a href="{{resetLink}}" class="button">Set Password</a>
-        <p>This link will expire in 5 minutes.</p>
+        <p>Your username is: <strong>{{useremail}}</strong></p>
+        <p>Please click the button below to set your password and activate your account:</p>
+        <a href="{{setPasswordLink}}" class="button" style="color: #ffffff; background-color: black;" >Set Your Password</a>
+        <p>This link will expire in <strong>15 minutes</strong>.</p>
+        <br />
+        <p>Once your password is set, you can log in and start using the platform!</p>
       </div>
     </div>
   </body>

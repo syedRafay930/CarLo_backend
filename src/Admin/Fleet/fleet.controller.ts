@@ -239,6 +239,11 @@ export class FleetController {
     );
   }
 
+  @Post('apply')
+  async apply(@Body() dto: SubmitApplicationDto) {
+    return this.fleetService.submitApplication(dto);
+  }
+
   @Post('public/uploadDocuments/:applicationId')
   @UseInterceptors(FilesInterceptor('files'))
   async uploadApplicationDocuments(
@@ -248,11 +253,35 @@ export class FleetController {
   ) {
     if (!files || !files.length)
       throw new BadRequestException('At least one file is required');
-    if (body.documentTypes.length !== files.length) {
+    if (body.documentTypes.length !== files.length)
       throw new BadRequestException(
         'documentTypes length must match files length',
       );
+
+    const fileMap: Record<string, Express.Multer.File> = {};
+    files.forEach((file, index) => {
+      fileMap[body.documentTypes[index]] = file;
+    });
+
+    if (
+      fileMap['cnic_front'] &&
+      fileMap['cnic_back'] &&
+      fileMap['shop_paper']
+    ) {
+      const application =
+        await this.fleetService.getApplicationById(applicationId);
+
+      await this.fleetService.verifyFleetDocuments(
+        fileMap['cnic_front'],
+        fileMap['cnic_back'],
+        fileMap['shop_paper'],
+        application.regNumber,
+        application.cnic,
+      );
+    } else {
+      throw new BadRequestException('CNIC Front, Back and Shop Paper are mandatory for verification');
     }
+
     return this.fleetService.uploadDocuments(
       files,
       body.documentTypes,
@@ -261,19 +290,14 @@ export class FleetController {
     );
   }
 
-  @Post('apply')
-  async apply(@Body() dto: SubmitApplicationDto) {
-    return this.fleetService.submitApplication(dto);
+  @Get('subscriptions')
+  async getSubscriptions() {
+    return this.fleetService.getActiveSubscriptions();
   }
 
   @Get(':id/status')
   async status(@Param('id', ParseIntPipe) id: number) {
     return this.fleetService.getApplicationStatus(id);
-  }
-
-  @Get('subscriptions')
-  async getSubscriptions() {
-    return this.fleetService.getActiveSubscriptions();
   }
 
   @Patch(':id/subscription')
@@ -285,5 +309,27 @@ export class FleetController {
       throw new BadRequestException('subscription_id is required');
     }
     return this.fleetService.selectSubscription(id, body.subscription_id);
+  }
+
+  @UseGuards(JwtBlacklistGuard)
+  @Get('applications')
+  async getAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.fleetService.getAllApplications({
+      page: Number(page),
+      limit: Number(limit),
+      status,
+      search,
+    });
+  }
+
+  @UseGuards(JwtBlacklistGuard)
+  @Get('applications/:id')
+  async getById(@Param('id', ParseIntPipe) id: number) {
+    return this.fleetService.getApplicationById(id);
   }
 }
