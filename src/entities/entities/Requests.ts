@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AdminNotifications } from './AdminNotifications';
+import { FleetManagerNotifications } from './FleetManagerNotifications';
 import { FleetNotifications } from './FleetNotifications';
 import { Admin } from './Admin';
 import { FleetManagers } from './FleetManagers';
@@ -82,6 +83,12 @@ export class Requests {
     (adminNotifications) => adminNotifications.request,
   )
   adminNotifications: AdminNotifications[];
+
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.request
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @OneToMany(
     () => FleetNotifications,

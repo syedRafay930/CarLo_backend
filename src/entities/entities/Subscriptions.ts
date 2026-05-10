@@ -6,9 +6,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { FleetManagerSubscriptions } from './FleetManagerSubscriptions';
-
-import { Requests } from './Requests';
 import { FleetRegistrationApplications } from './FleetRegistrationApplications';
+import { Requests } from './Requests';
 
 @Index('subscriptions_pkey', ['id'], { unique: true })
 @Index('subscriptions_name_key', ['name'], { unique: true })
@@ -59,13 +58,13 @@ export class Subscriptions {
   )
   fleetManagerSubscriptions: FleetManagerSubscriptions[];
 
-  @OneToMany(() => Requests, (requests) => requests.subscription)
-  requests: Requests[];
-
   @OneToMany(
     () => FleetRegistrationApplications,
     (fleetRegistrationApplications) =>
       fleetRegistrationApplications.subscriptions,
   )
   fleetRegistrationApplications: FleetRegistrationApplications[];
+
+  @OneToMany(() => Requests, (requests) => requests.subscription)
+  requests: Requests[];
 }

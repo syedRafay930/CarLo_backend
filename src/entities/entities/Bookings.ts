@@ -10,6 +10,7 @@ import {
 import { FleetManagers } from './FleetManagers';
 import { Users } from './Users';
 import { FleetManagerVehicles } from './FleetManagerVehicles';
+import { FleetManagerNotifications } from './FleetManagerNotifications';
 import { Transactions } from './Transactions';
 
 @Index('bookings_booking_code_key', ['bookingCode'], { unique: true })
@@ -37,9 +38,6 @@ export class Bookings {
 
   @Column('character varying', { name: 'return_location', length: 255 })
   returnLocation: string;
-
-  @Column('character varying', { name: 'payment_status', length: 255 })
-  paymentStatus: string;
 
   @Column('enum', { name: 'service_type', enum: ['self_drive', 'with_driver'] })
   serviceType: 'self_drive' | 'with_driver';
@@ -155,6 +153,14 @@ export class Bookings {
   })
   updatedAt: Date;
 
+  @Column('enum', {
+    name: 'payment_status',
+    nullable: true,
+    enum: ['pending', 'advance_paid', 'full_paid'],
+    default: () => "'pending'",
+  })
+  paymentStatus: 'pending' | 'advance_paid' | 'full_paid' | null;
+
   @ManyToOne(() => FleetManagers, (fleetManagers) => fleetManagers.bookings)
   @JoinColumn([{ name: 'fleet_manager_id', referencedColumnName: 'id' }])
   fleetManager: FleetManagers;
@@ -169,6 +175,12 @@ export class Bookings {
   )
   @JoinColumn([{ name: 'vehicle_id', referencedColumnName: 'id' }])
   vehicle: FleetManagerVehicles;
+
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.booking
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @OneToMany(() => Transactions, (transactions) => transactions.booking)
   transactions: Transactions[];

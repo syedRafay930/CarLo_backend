@@ -10,6 +10,7 @@ import {
 import { FleetManagersDocuments } from './FleetManagersDocuments';
 import { Admin } from './Admin';
 import { Subscriptions } from './Subscriptions';
+import { AdminNotifications } from './AdminNotifications';
 export enum ApplicationStatus {
   PENDING = 'pending',
   UNDER_REVIEW = 'under_review',
@@ -106,6 +107,12 @@ export class FleetRegistrationApplications {
     default: () => 'now()',
   })
   updatedAt: Date | null;
+
+  @OneToMany(
+    () => AdminNotifications,
+    (adminNotifications) => adminNotifications.application,
+  )
+  adminNotifications: AdminNotifications[];
 
   @OneToMany(
     () => FleetManagersDocuments,

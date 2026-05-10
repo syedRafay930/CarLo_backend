@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Bookings } from './Bookings';
+import { FleetManagerNotifications } from './FleetManagerNotifications';
 import { FleetManagers } from './FleetManagers';
 import { Transactions } from './Transactions';
 import { UserFavoriteVehicles } from './UserFavoriteVehicles';
@@ -66,6 +67,12 @@ export class Users {
 
   @OneToMany(() => Bookings, (bookings) => bookings.user)
   bookings: Bookings[];
+
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.senderClient
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @OneToOne(() => FleetManagers, (fleetManagers) => fleetManagers.clientOwner)
   fleetManagers: FleetManagers;
