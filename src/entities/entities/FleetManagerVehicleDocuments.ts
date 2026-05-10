@@ -20,27 +20,27 @@ export class FleetManagerVehicleDocuments {
     enum: [
       "image_coverimg",
       "image_exterior_front",
-      "image_exterior_left",
-      "image_exterior_right",
       "image_exterior_back",
       "image_interior",
       "registration_paper",
       "insurance_paper",
       "fitness_certificate",
       "other_document",
+      "image_exterior_left",
+      "image_exterior_right",
     ],
   })
   docType:
     | "image_coverimg"
     | "image_exterior_front"
-    | "image_exterior_left"
-    | "image_exterior_right"
     | "image_exterior_back"
     | "image_interior"
     | "registration_paper"
     | "insurance_paper"
     | "fitness_certificate"
-    | "other_document";
+    | "other_document"
+    | "image_exterior_left"
+    | "image_exterior_right";
 
   @Column("character varying", { name: "document_url", length: 500 })
   documentUrl: string;

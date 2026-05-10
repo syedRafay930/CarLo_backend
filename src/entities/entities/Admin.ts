@@ -10,6 +10,7 @@ import {
 import { AdminRole } from "./AdminRole";
 import { AdminFcmTokens } from "./AdminFcmTokens";
 import { AdminNotifications } from "./AdminNotifications";
+import { FleetManagerNotifications } from "./FleetManagerNotifications";
 import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
 import { FleetManagers } from "./FleetManagers";
@@ -72,6 +73,12 @@ export class Admin {
     (adminNotifications) => adminNotifications.receiver
   )
   adminNotifications: AdminNotifications[];
+
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.senderAdmin
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @OneToMany(
     () => FleetManagerVehicleDocuments,

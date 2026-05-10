@@ -35,7 +35,8 @@ export class FleetManagerUsersRole {
 
   @ManyToOne(
     () => FleetManagers,
-    (fleetManagers) => fleetManagers.fleetManagerUsersRoles
+    (fleetManagers) => fleetManagers.fleetManagerUsersRoles,
+    { onDelete: "CASCADE" }
   )
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
   fleetManager: FleetManagers;

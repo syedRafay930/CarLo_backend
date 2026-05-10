@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { AdminNotifications } from "./AdminNotifications";
 import { FleetFcmTokens } from "./FleetFcmTokens";
+import { FleetManagerNotifications } from "./FleetManagerNotifications";
 import { FleetManagers } from "./FleetManagers";
 import { FleetManagerUsersRole } from "./FleetManagerUsersRole";
 import { FleetManagerVehicles } from "./FleetManagerVehicles";
@@ -87,6 +88,12 @@ export class FleetManagerUsers {
 
   @OneToMany(() => FleetFcmTokens, (fleetFcmTokens) => fleetFcmTokens.fleetUser)
   fleetFcmTokens: FleetFcmTokens[];
+
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.receiver
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @ManyToOne(
     () => FleetManagers,

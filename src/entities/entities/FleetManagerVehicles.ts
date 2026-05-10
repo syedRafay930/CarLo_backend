@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 import { Bookings } from "./Bookings";
+import { FleetManagerNotifications } from "./FleetManagerNotifications";
 import { FleetManagerVehicleDocuments } from "./FleetManagerVehicleDocuments";
 import { Admin } from "./Admin";
 import { FleetManagerUsers } from "./FleetManagerUsers";
@@ -171,6 +172,25 @@ export class FleetManagerVehicles {
   @Column("boolean", { name: "is_deleted", default: () => "false" })
   isDeleted: boolean;
 
+  @Column("timestamp without time zone", {
+    name: "created_at",
+    default: () => "now()",
+  })
+  createdAt: Date;
+
+  @Column("timestamp without time zone", {
+    name: "updated_at",
+    default: () => "now()",
+  })
+  updatedAt: Date;
+
+  @Column("character varying", {
+    name: "approval_status",
+    nullable: true,
+    length: 255,
+  })
+  approvalStatus: string | null;
+
   @Column("integer", {
     name: "max_adjustment_percent",
     nullable: true,
@@ -185,20 +205,14 @@ export class FleetManagerVehicles {
   })
   dynamicPricingEnabled: boolean | null;
 
-  @Column("timestamp without time zone", {
-    name: "created_at",
-    default: () => "now()",
-  })
-  createdAt: Date;
+  @OneToMany(() => Bookings, (bookings) => bookings.vehicle)
+  bookings: Bookings[];
 
-  @Column("timestamp without time zone", {
-    name: "updated_at",
-    default: () => "now()",
-  })
-  updatedAt: Date;
-
-  @Column("character varying", { name: "approval_status", length: 255 })
-  approvalStatus: string | null;
+  @OneToMany(
+    () => FleetManagerNotifications,
+    (fleetManagerNotifications) => fleetManagerNotifications.vehicle
+  )
+  fleetManagerNotifications: FleetManagerNotifications[];
 
   @OneToMany(
     () => FleetManagerVehicleDocuments,
@@ -210,8 +224,11 @@ export class FleetManagerVehicles {
   @JoinColumn([{ name: "approved_by", referencedColumnName: "id" }])
   approvedBy: Admin;
 
- 
-  @ManyToOne(() => FleetManagerUsers, (fleetManagers) => fleetManagers.fleetManagerVehicles)
+  @ManyToOne(
+    () => FleetManagerUsers,
+    (fleetManagerUsers) => fleetManagerUsers.fleetManagerVehicles,
+    { onDelete: "SET NULL" }
+  )
   @JoinColumn([{ name: "created_by", referencedColumnName: "id" }])
   createdBy: FleetManagerUsers;
 
@@ -223,7 +240,11 @@ export class FleetManagerVehicles {
   @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
   fleetManager: FleetManagers;
 
-  @ManyToOne(() => FleetManagerUsers, (fleetManager) => fleetManager.fleetManagerVehicles2)
+  @ManyToOne(
+    () => FleetManagerUsers,
+    (fleetManagerUsers) => fleetManagerUsers.fleetManagerVehicles2,
+    { onDelete: "SET NULL" }
+  )
   @JoinColumn([{ name: "updated_by", referencedColumnName: "id" }])
   updatedBy: FleetManagerUsers;
 
@@ -244,8 +265,4 @@ export class FleetManagerVehicles {
 
   @OneToMany(() => VehicleRatings, (vehicleRatings) => vehicleRatings.vehicle)
   vehicleRatings: VehicleRatings[];
-
-  @OneToMany(() => Bookings, (bookings) => bookings.vehicle)
-  bookings: Bookings[];
-
 }
