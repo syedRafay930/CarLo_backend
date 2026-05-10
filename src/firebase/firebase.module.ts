@@ -10,11 +10,13 @@ import { forwardRef } from '@nestjs/common';
 import { FirebaseController } from './firebase.controller';
 import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
 import { UsersModule } from 'src/Admin/User/user.module';
+import { FleetManagerNotifications } from 'src/entities/entities/FleetManagerNotifications';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       AdminFcmTokens,
       FleetFcmTokens,
+      FleetManagerNotifications,
       AdminNotifications,
     ]),
     forwardRef(() => UsersModule),
