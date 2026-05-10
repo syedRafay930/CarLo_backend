@@ -117,6 +117,22 @@ export class FirebaseService {
     }));
   }
 
+  async getTokensOfFleetAdmin(): Promise<{ token: string; fleet_user_id: number }[]> {
+    const tokens = await this.fleetfcmRepo
+      .createQueryBuilder('token')
+      .innerJoin('token.fleetUser', 'fleetUser')
+      .where('fleetUser.fmUsersRole.id = :roleId', { roleId: 10 })
+      .select(['token.token', 'token.fleet_user_id'])
+      .getRawMany();
+
+    console.log('Fleet Admin Tokens:', tokens); // Debug log
+
+    return tokens.map((t) => ({
+      token: t.token_token,
+      fleet_user_id: t.token_fleet_user_id,
+    }));
+  }
+
   async saveAndSendNotificationToAdmins(dto: {
     title: string;
     body: string;
