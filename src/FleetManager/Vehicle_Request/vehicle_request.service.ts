@@ -12,6 +12,7 @@ import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles
 import { FleetManagers } from 'src/entities/entities/FleetManagers';
 import { FleetManagerUsers } from 'src/entities/entities/FleetManagerUsers';
 import { Admin } from 'src/entities/entities/Admin';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class VehicleRequestService {
@@ -24,6 +25,8 @@ export class VehicleRequestService {
     private readonly fleetRepository: Repository<FleetManagers>,
     @InjectRepository(FleetManagerUsers)
     private readonly fleetUserRepository: Repository<FleetManagerUsers>,
+
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async createRequest(
@@ -174,7 +177,7 @@ export class VehicleRequestService {
   ) {
     const req = await this.vehicleRequestRepository.findOne({
       where: { id: requestId },
-      relations: ['vehicle'],
+      relations: ['vehicle', 'vehicle.createdBy'], // ← createdBy add karo
     });
     if (!req) {
       throw new NotFoundException(`Request ${requestId} not found`);
@@ -217,6 +220,35 @@ export class VehicleRequestService {
       req.adminRespondedBy = { id: adminId } as Admin;
       await em.getRepository(Requests).save(req);
     });
+
+    // FM ko notification bhejo — transaction ke baad
+    const fmUserId = req.vehicle?.createdBy?.id;
+    const vehicle = req.vehicle;
+
+    if (fmUserId && vehicle) {
+      try {
+        await this.firebaseService.saveAndSendNotificationToFM({
+          title:
+            decision === 'approved'
+              ? '✅ Vehicle Approved'
+              : '❌ Vehicle Rejected',
+          body:
+            decision === 'approved'
+              ? `Your ${vehicle.make} ${vehicle.model} (${vehicle.licensePlate}) has been approved and is now live.`
+              : `Your ${vehicle.make} ${vehicle.model} (${vehicle.licensePlate}) was not approved. Please review and resubmit.`,
+          type:
+            decision === 'approved' ? 'vehicle_approved' : 'vehicle_rejected',
+          receiver_id: fmUserId,
+          sender_admin_id: adminId,
+          vehicle_id: vehicle.id,
+          request_id: requestId,
+          redirect_url: `/vehicles/${vehicle.id}`,
+        });
+      } catch (err) {
+        // Notification fail hone se main flow block na ho
+        console.error('FM notification failed:', err);
+      }
+    }
 
     return {
       message: `Request ${decision} successfully`,

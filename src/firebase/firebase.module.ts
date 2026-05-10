@@ -1,15 +1,15 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module, Logger, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AdminFcmTokens } from 'src/entities/entities/AdminFcmTokens';
 import { FleetFcmTokens } from 'src/entities/entities/FleetFcmTokens';
+import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
+import { FleetManagerNotifications } from 'src/entities/entities/FleetManagerNotifications';
 import * as admin from 'firebase-admin';
 import { FirebaseService } from './firebase.service';
 import * as path from 'path';
 import * as fs from 'fs';
-import { forwardRef } from '@nestjs/common';
 import { FirebaseController } from './firebase.controller';
-import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
 import { UsersModule } from 'src/Admin/User/user.module';
 
 const firebaseModuleLogger = new Logger('FirebaseModule');
@@ -23,11 +23,13 @@ function resolveCredentialsPath(config: ConfigService): string | null {
   }
   return path.isAbsolute(raw) ? raw : path.join(process.cwd(), raw);
 }
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       AdminFcmTokens,
       FleetFcmTokens,
+      FleetManagerNotifications,
       AdminNotifications,
     ]),
     forwardRef(() => UsersModule),
