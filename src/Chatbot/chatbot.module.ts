@@ -8,9 +8,7 @@ import { GeminiService } from './gemini.service';
 import { RagService } from './rag.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([FleetManagerVehicles, FleetManagers]),
-  ],
+  imports: [TypeOrmModule.forFeature([FleetManagerVehicles, FleetManagers])],
   controllers: [ChatbotController],
   providers: [ChatbotService, GeminiService, RagService],
   exports: [ChatbotService],

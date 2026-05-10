@@ -25,7 +25,9 @@ export class GeminiService implements OnModuleInit {
   private normalizeChatHistory(
     conversationHistory: Array<{ role: 'user' | 'model'; content: string }>,
   ): Array<{ role: 'user' | 'model'; content: string }> {
-    const h = conversationHistory.filter((m) => (m.content ?? '').trim().length > 0);
+    const h = conversationHistory.filter(
+      (m) => (m.content ?? '').trim().length > 0,
+    );
     let start = 0;
     while (start < h.length && h[start].role === 'model') {
       start++;
@@ -69,7 +71,9 @@ export class GeminiService implements OnModuleInit {
       const result = await chat.sendMessage(userMessage);
       const response = result.response;
       const text = response.text();
-      return text?.trim() || 'Sorry, I could not generate a reply. Please try again.';
+      return (
+        text?.trim() || 'Sorry, I could not generate a reply. Please try again.'
+      );
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('[GeminiService] Error:', msg);

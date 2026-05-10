@@ -82,7 +82,9 @@ export class ClientAuthService {
     });
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{ access_token: string }> {
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ access_token: string }> {
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token provided');
     }
@@ -103,7 +105,7 @@ export class ClientAuthService {
     try {
       payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET'),
-      }) as typeof payload;
+      });
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
@@ -218,7 +220,7 @@ export class ClientAuthService {
 
     if (attempts >= 4) {
       const prevCooldown = await this.redisService.getValue(durationKey);
-      let cooldownTime = prevCooldown ? +prevCooldown * 2 : 30 * 60 * 1000; // 30 mins in ms
+      const cooldownTime = prevCooldown ? +prevCooldown * 2 : 30 * 60 * 1000; // 30 mins in ms
 
       const until = Date.now() + cooldownTime;
 
@@ -244,7 +246,7 @@ export class ClientAuthService {
       throw new UnauthorizedException('No token provided');
     }
 
-    const payload = this.jwtService.decode(token) as { sub: string };
+    const payload = this.jwtService.decode(token);
     if (!payload || !payload.sub) {
       throw new UnauthorizedException('Invalid token');
     }

@@ -31,7 +31,6 @@ export class UsersController {
   @UseGuards(JwtBlacklistGuard)
   @Post('add-internal-user')
   async createInternalUser(@Request() req, @Body() addDto: AddInternalUserDto) {
-    
     const user = await this.usersService.createInternalUser(addDto);
     await this.usersService.generateJwtTokenAndResetLink(user);
 
@@ -82,7 +81,6 @@ export class UsersController {
     @Query('status') status?: 'active' | 'inactive',
     @Query('search') search?: string,
   ) {
-        
     return this.usersService.getInternalUsersExcludingSelf(
       req.user.admin_id,
       req.user.admin_role,

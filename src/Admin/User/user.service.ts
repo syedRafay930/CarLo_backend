@@ -56,7 +56,7 @@ export class UsersService {
   async getAdminIds(): Promise<number[]> {
     const admins = await this.usersRepository.find({
       select: ['id'],
-      where: [{ role: { id: 1 } } ],
+      where: [{ role: { id: 1 } }],
     });
     return admins.map((a) => a.id);
   }
@@ -188,8 +188,7 @@ export class UsersService {
     const roleRow = await this.rolesRepository.findOne({
       where: { id: currentUserRoleId },
     });
-    const isSuperAdmin =
-      (roleRow?.name ?? '').toLowerCase() === 'superadmin';
+    const isSuperAdmin = (roleRow?.name ?? '').toLowerCase() === 'superadmin';
 
     const whereCondition: Record<string, unknown> = {
       id: Not(currentUserId),
@@ -231,7 +230,7 @@ export class UsersService {
       totalPages: Math.ceil(total / limit),
     };
   }
-    async softDeleteUser(id: number, is_delete: boolean) {
+  async softDeleteUser(id: number, is_delete: boolean) {
     const user = await this.usersRepository.findOne({
       where: { id: id },
     });

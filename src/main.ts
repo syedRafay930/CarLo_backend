@@ -23,18 +23,23 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
-  app.useGlobalPipes(new ValidationPipe({transform: true,whitelist: true,forbidNonWhitelisted: true}));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
-   const config = new DocumentBuilder()
-        .setTitle('Your API Title') // Customize your API title
-        .setDescription('Your API description') // Customize your API description
-        .setVersion('1.0') // Customize your API version
-        .addBearerAuth() // Optional: if you use bearer token authentication
-        .build();
+  const config = new DocumentBuilder()
+    .setTitle('Your API Title') // Customize your API title
+    .setDescription('Your API description') // Customize your API description
+    .setVersion('1.0') // Customize your API version
+    .addBearerAuth() // Optional: if you use bearer token authentication
+    .build();
 
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api', app, document); // 'api' is the path where Swagger UI will be accessible
-
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document); // 'api' is the path where Swagger UI will be accessible
 
   const port = Number(process.env.PORT) || 3005;
   await app.listen(port);

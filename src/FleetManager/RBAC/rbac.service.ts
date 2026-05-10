@@ -52,16 +52,21 @@ export class FM_RBACService {
   }
 
   async getRoles(fleet_id: number) {
-    return await this.roleRepo.find({ where: { fleetManager: { id: fleet_id } } });
+    return await this.roleRepo.find({
+      where: { fleetManager: { id: fleet_id } },
+    });
   }
 
   async editRole(id: number, roleDto: AddFMRoleDto) {
-    const role = await this.roleRepo.findOne({ where: { id }});
+    const role = await this.roleRepo.findOne({ where: { id } });
     if (!role) {
       throw new NotFoundException('Role not found.');
     }
     const roleExists = await this.roleRepo.findOne({
-      where: { roleName: roleDto.role_name, fleetManager:{id: roleDto.fleet_id} },
+      where: {
+        roleName: roleDto.role_name,
+        fleetManager: { id: roleDto.fleet_id },
+      },
     });
     if (roleExists) {
       throw new ConflictException('Role name already exists.');
@@ -70,8 +75,8 @@ export class FM_RBACService {
     return await this.roleRepo.save(role);
   }
 
-  async deleteRole(id: number,fleet_id: number) {
-    const role = await this.roleRepo.findOne({ where: { id }});
+  async deleteRole(id: number, fleet_id: number) {
+    const role = await this.roleRepo.findOne({ where: { id } });
     if (!role) {
       throw new NotFoundException('Role not found.');
     }
@@ -81,7 +86,7 @@ export class FM_RBACService {
     }
 
     // Step 1: Delete all role_permissions linked to this role
-    await this.permissionRepo.delete({ role: { id } , fleet: { id: fleet_id }});
+    await this.permissionRepo.delete({ role: { id }, fleet: { id: fleet_id } });
 
     // Step 2: Delete the role
     return await this.roleRepo.remove(role);
@@ -89,14 +94,20 @@ export class FM_RBACService {
 
   async addRole(roleDto: AddFMRoleDto) {
     const roleExists = await this.roleRepo.findOne({
-      where: { roleName: roleDto.role_name, fleetManager: { id: roleDto.fleet_id } },
+      where: {
+        roleName: roleDto.role_name,
+        fleetManager: { id: roleDto.fleet_id },
+      },
     });
     if (roleExists) {
       throw new ConflictException('Role name already exists.');
     }
 
     // Step 1: Create the role
-    const role = this.roleRepo.create({ roleName: roleDto.role_name, fleetManager: { id: roleDto.fleet_id } });
+    const role = this.roleRepo.create({
+      roleName: roleDto.role_name,
+      fleetManager: { id: roleDto.fleet_id },
+    });
     const savedRole = await this.roleRepo.save(role);
 
     // Step 2: Fetch all relation_ids from relation_module
@@ -165,7 +176,7 @@ export class FM_RBACService {
       .execute();
 
     // Optional: return updated permission matrix for UI
-    const updatedMatrix = await this.getModulesByRole(roleId,fleetId);
+    const updatedMatrix = await this.getModulesByRole(roleId, fleetId);
 
     return {
       message: `Permissions ${isEnable ? 'enabled' : 'disabled'} for role`,
@@ -180,7 +191,7 @@ export class FM_RBACService {
 
     const permissions = isSuperAdmin
       ? await this.permissionRepo.find({
-        where: { fleet: { id: fleetId } },
+          where: { fleet: { id: fleetId } },
           relations: [
             'relation',
             'relation.parentModule',
@@ -189,7 +200,7 @@ export class FM_RBACService {
           ],
         })
       : await this.permissionRepo.find({
-          where: { roleId: roleId,fleet: { id: fleetId } },
+          where: { roleId: roleId, fleet: { id: fleetId } },
           relations: [
             'relation',
             'relation.parentModule',
@@ -272,7 +283,7 @@ export class FM_RBACService {
       results.push({
         role_id: role.id,
         role_name: role.roleName ?? '',
-        modules: await this.getModulesByRole(role.id,role.fleetManager.id),
+        modules: await this.getModulesByRole(role.id, role.fleetManager.id),
       });
     }
     return results;

@@ -84,7 +84,7 @@ export class BookingService {
     let totaldays: number = 0;
     let initialTotalCharge;
 
-    let isPerHourPricing: boolean = dto.priceModel === 'per_hr';
+    const isPerHourPricing: boolean = dto.priceModel === 'per_hr';
 
     if (isPerHourPricing) {
       totalhours = Math.ceil(durationMs / (1000 * 3600));
@@ -186,7 +186,7 @@ export class BookingService {
 
     const amountToCharge = parseFloat(booking.initialTotalCharge) + 15.0; // Adding a platform fee of 15.0
     let transactionStatus: string;
-    let transactionMethod: string = paymentMethod;
+    const transactionMethod: string = paymentMethod;
 
     const transactionCode =
       'TX-' + Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -228,7 +228,6 @@ export class BookingService {
     };
   }
 
-
   async getBookingSlip(bookingId: number, clientId: number) {
     const bookingDetails = await this.bookingRepo
       .createQueryBuilder('b')
@@ -240,7 +239,7 @@ export class BookingService {
       .leftJoinAndSelect('b.fleetManager', 'fm')
       .getOne();
 
-    console.log(bookingDetails?.transactions[0]?.transactionCode)
+    console.log(bookingDetails?.transactions[0]?.transactionCode);
 
     if (!bookingDetails) {
       throw new NotFoundException('Booking not found or is awaiting approval.');
@@ -275,7 +274,7 @@ export class BookingService {
 
       transactionDetail: {
         transactionId: transaction?.transactionCode || 'N/A',
-        processedat : transaction?.processedAt,
+        processedat: transaction?.processedAt,
         methodUsed: transaction?.method || 'Cash (Advance)',
         transactionStatus: transaction?.status,
         extraCharges: parseFloat(bookingDetails.extraChargesApplied || '0.00'),

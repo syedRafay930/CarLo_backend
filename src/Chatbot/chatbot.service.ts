@@ -10,7 +10,10 @@ export class ChatbotService {
     private readonly ragService: RagService,
   ) {}
 
-  private buildSystemPrompt(vehicleContext: string, fleetContext: string): string {
+  private buildSystemPrompt(
+    vehicleContext: string,
+    fleetContext: string,
+  ): string {
     return `You are CarLo Assistant, a helpful AI for CarLo — Pakistan's 
 intelligent multi-dealer car rental platform.
 

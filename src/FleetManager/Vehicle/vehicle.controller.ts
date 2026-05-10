@@ -79,7 +79,7 @@ export class VehicleController {
 
     if (hasAllRequired) {
       const vehicle = await this.vehicleService.getVehicleById(vehicleId);
-      
+
       const aiFileMap: Record<string, Express.Multer.File> = {
         image_exterior_front: fileMap['image_exterior_front'],
         image_exterior_back: fileMap['image_exterior_back'],

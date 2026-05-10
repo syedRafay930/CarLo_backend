@@ -1,59 +1,63 @@
 import {
-  IsEmail, IsEnum, IsInt, IsNotEmpty,
-  IsOptional, IsString, Min
-} from 'class-validator'
-import { Type } from 'class-transformer'
-import { FleetManagerType } from 'src/entities/entities/FleetRegistrationApplications'
+  IsEmail,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { FleetManagerType } from 'src/entities/entities/FleetRegistrationApplications';
 
 export class SubmitApplicationDto {
   // Business info
   @IsNotEmpty()
   @IsString()
-  business_name: string
+  business_name: string;
 
   @IsNotEmpty()
   @IsString()
-  owner_first_name: string
+  owner_first_name: string;
 
   @IsNotEmpty()
   @IsString()
-  owner_last_name: string
+  owner_last_name: string;
 
   @IsNotEmpty()
   @IsEmail()
-  email: string
+  email: string;
 
   @IsNotEmpty()
   @IsString()
-  contact: string
+  contact: string;
 
   @IsOptional()
   @IsString()
-  city?: string
+  city?: string;
 
   @IsOptional()
   @IsString()
-  state?: string
+  state?: string;
 
   @IsOptional()
   @IsString()
-  country?: string
+  country?: string;
 
   @IsOptional()
   @IsString()
-  address?: string
+  address?: string;
 
   // Fleet info
   @IsNotEmpty()
   @IsEnum(FleetManagerType)
-  fleet_type: FleetManagerType
-
-
-  @IsNotEmpty()
-  @IsString()
-  cnic: string
+  fleet_type: FleetManagerType;
 
   @IsNotEmpty()
   @IsString()
-  reg_number: string
+  cnic: string;
+
+  @IsNotEmpty()
+  @IsString()
+  reg_number: string;
 }

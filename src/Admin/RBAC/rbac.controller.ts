@@ -27,9 +27,9 @@ export class RBACController {
 
   @UseGuards(JwtBlacklistGuard)
   @Post('add-role')
-  async addRole(@Body() roleDto: AddRoleDto , @Request() req: any) {
+  async addRole(@Body() roleDto: AddRoleDto, @Request() req: any) {
     return this.rbacService.addRole(roleDto);
-}
+  }
 
   @UseGuards(JwtBlacklistGuard)
   @Get('get-roles')
@@ -40,20 +40,23 @@ export class RBACController {
 
   @UseGuards(JwtBlacklistGuard)
   @Patch('edit-role/:id')
-  async editRole(@Param('id') id: number, @Body() roleDto: AddRoleDto , @Request() req: any) {
+  async editRole(
+    @Param('id') id: number,
+    @Body() roleDto: AddRoleDto,
+    @Request() req: any,
+  ) {
     return this.rbacService.editRole(id, roleDto);
   }
 
   @UseGuards(JwtBlacklistGuard)
   @Delete('delete-role/:id')
-  async deleteRole(@Param('id') id: number , @Request() req: any) {
+  async deleteRole(@Param('id') id: number, @Request() req: any) {
     const role = await this.rbacService.deleteRole(id);
-    return{
+    return {
       message: 'Role deleted successfully',
-      role
-    }
-    }
-
+      role,
+    };
+  }
 
   @UseGuards(JwtBlacklistGuard)
   @Post('assign-permissions')

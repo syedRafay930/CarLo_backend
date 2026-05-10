@@ -14,7 +14,6 @@ import { Controller } from '@nestjs/common';
 import { AdminNotificationService } from './notification.service';
 import { JwtBlacklistGuard } from '../Auth/guards/jwt.guard';
 
-
 @Controller('admin/notifications')
 export class AdminNotificationController {
   constructor(private readonly notificationService: AdminNotificationService) {}

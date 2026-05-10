@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddDynamicPricingFields1734000000000 implements MigrationInterface {
+export class AddDynamicPricingFields1734000000000
+  implements MigrationInterface
+{
   name = 'AddDynamicPricingFields1734000000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {

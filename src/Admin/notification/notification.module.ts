@@ -10,7 +10,7 @@ import { FleetManagerUsersRole } from 'src/entities/entities/FleetManagerUsersRo
 import { Subscriptions } from 'src/entities/entities/Subscriptions';
 import { MailModule } from 'src/Nodemailer/mailer.module';
 import { FirebaseModule } from 'src/firebase/firebase.module';
-import {AuthModule} from "../Auth/auth.module";
+import { AuthModule } from '../Auth/auth.module';
 
 @Module({
   imports: [

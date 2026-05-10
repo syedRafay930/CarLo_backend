@@ -19,7 +19,7 @@ export class FMJwtStrategy extends PassportStrategy(Strategy, 'fm-jwt') {
       fleet_username: payload.name,
       fleet_role: payload.role,
       fleet_user_id: payload.fleet_user_id,
-      fleet_id: payload.fleet_id
+      fleet_id: payload.fleet_id,
     };
   }
 }

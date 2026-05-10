@@ -251,8 +251,7 @@ export class OcrWorkflowService {
         };
         break;
       case 'driving_license_front':
-        extractedFields =
-          this.parserService.parseDrivingLicenseFront(fullText);
+        extractedFields = this.parserService.parseDrivingLicenseFront(fullText);
         validation = this.validatorService.validateDrivingLicenseFront(
           extractedFields as ExtractedDrivingLicenseFront,
         );
@@ -398,22 +397,19 @@ export class OcrWorkflowService {
       }
     };
 
-    const cnicFront = (await loadOcr(
-      dto.cnicFrontDocId,
-      'cnic_front',
-    )) as import('./ocr.types').ExtractedCnicFront | null;
-    const cnicBack = (await loadOcr(
-      dto.cnicBackDocId,
-      'cnic_back',
-    )) as import('./ocr.types').ExtractedCnicBack | null;
+    const cnicFront = (await loadOcr(dto.cnicFrontDocId, 'cnic_front')) as
+      | import('./ocr.types').ExtractedCnicFront
+      | null;
+    const cnicBack = (await loadOcr(dto.cnicBackDocId, 'cnic_back')) as
+      | import('./ocr.types').ExtractedCnicBack
+      | null;
     const dlFront = (await loadOcr(
       dto.dlFrontDocId,
       'driving_license_front',
     )) as import('./ocr.types').ExtractedDrivingLicenseFront | null;
-    const dlBack = (await loadOcr(
-      dto.dlBackDocId,
-      'driving_license_back',
-    )) as import('./ocr.types').ExtractedDrivingLicenseBack | null;
+    const dlBack = (await loadOcr(dto.dlBackDocId, 'driving_license_back')) as
+      | import('./ocr.types').ExtractedDrivingLicenseBack
+      | null;
 
     const result = this.validatorService.crossValidate({
       cnicFront: cnicFront ?? undefined,

@@ -1,4 +1,10 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export enum FleetType {
   INDIVIDUAL = 'individual',
@@ -41,5 +47,4 @@ export class AddFleetDto {
   @IsNotEmpty()
   @IsString()
   fleet_registration_number: string;
-
 }

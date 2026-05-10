@@ -26,9 +26,9 @@ export class FM_RBACController {
 
   @UseGuards(FMJwtBlacklistGuard)
   @Post('add-role')
-  async addRole(@Body() roleDto: AddFMRoleDto , @Request() req: any) {
+  async addRole(@Body() roleDto: AddFMRoleDto, @Request() req: any) {
     return this.rbacService.addRole(roleDto);
-}
+  }
 
   @UseGuards(FMJwtBlacklistGuard)
   @Get('get-roles')
@@ -39,19 +39,23 @@ export class FM_RBACController {
 
   @UseGuards(FMJwtBlacklistGuard)
   @Patch('edit-role/:id')
-  async editRole(@Param('id') id: number, @Body() roleDto: AddFMRoleDto , @Request() req: any) {
+  async editRole(
+    @Param('id') id: number,
+    @Body() roleDto: AddFMRoleDto,
+    @Request() req: any,
+  ) {
     return this.rbacService.editRole(id, roleDto);
   }
 
   @UseGuards(FMJwtBlacklistGuard)
   @Delete('delete-role/:id')
-  async deleteRole(@Param('id') id: number , @Request() req: any) {
-    const role = await this.rbacService.deleteRole(id,req.user.fleet_id);
-    return{
+  async deleteRole(@Param('id') id: number, @Request() req: any) {
+    const role = await this.rbacService.deleteRole(id, req.user.fleet_id);
+    return {
       message: 'Role deleted successfully',
-      role
-    }
-    }
+      role,
+    };
+  }
 
   @UseGuards(FMJwtBlacklistGuard)
   @Post('assign-permissions')
@@ -65,11 +69,14 @@ export class FM_RBACController {
       dto.module_id,
       dto.is_enable,
       req.user.fleet_id,
-    );  
+    );
   }
 
   @Get('sidebar/:roleId/:fleetId')
-  async getSidebarModules(@Param('roleId') roleId: number, @Param('fleetId') fleetId: number) {
+  async getSidebarModules(
+    @Param('roleId') roleId: number,
+    @Param('fleetId') fleetId: number,
+  ) {
     return this.rbacService.getModulesByRole(roleId, fleetId);
   }
 

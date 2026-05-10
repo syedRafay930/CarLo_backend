@@ -38,7 +38,9 @@ export class AllocationService {
     private readonly bookingRepo: Repository<Bookings>,
   ) {}
 
-  async getRecommendations(dto: AllocationRequestDto): Promise<AllocationResult> {
+  async getRecommendations(
+    dto: AllocationRequestDto,
+  ): Promise<AllocationResult> {
     const pickup = new Date(dto.pickupDate);
     const returnD = new Date(dto.returnDate);
     const ms = returnD.getTime() - pickup.getTime();
@@ -84,9 +86,7 @@ export class AllocationService {
       ),
     );
 
-    const top3 = scored
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, 3);
+    const top3 = scored.sort((a, b) => b.totalScore - a.totalScore).slice(0, 3);
 
     const agentExplanation = this.buildAgentExplanation(top3, dto, totalDays);
 
@@ -110,7 +110,7 @@ export class AllocationService {
     const rows = await this.vehicleRepo
       .createQueryBuilder('v')
       .innerJoin('v.fleetManager', 'fm')
-      .select('COALESCE(fm.city, \'Unknown\')', 'city')
+      .select("COALESCE(fm.city, 'Unknown')", 'city')
       .addSelect('v.vehicleType', 'type')
       .where('v.isApprovedByAdmin = :ap', { ap: true })
       .andWhere('v.vehicleStatus = :st', { st: 'available' })
@@ -187,9 +187,7 @@ export class AllocationService {
       }
     } else {
       typeScore = 20;
-      reasoning.push(
-        `✗ ${vehicle.vehicleType} — requested ${dto.vehicleType}`,
-      );
+      reasoning.push(`✗ ${vehicle.vehicleType} — requested ${dto.vehicleType}`);
     }
 
     if (dto.minSeats != null && vehicle.seatingCapacity < dto.minSeats) {
@@ -239,7 +237,9 @@ export class AllocationService {
     let ratingScore = 60;
     if (ratings.count > 0 && ratings.avg > 0) {
       ratingScore = (ratings.avg / 5) * 100;
-      reasoning.push(`★ ${ratings.avg.toFixed(1)}/5 (${ratings.count} reviews)`);
+      reasoning.push(
+        `★ ${ratings.avg.toFixed(1)}/5 (${ratings.count} reviews)`,
+      );
     } else {
       reasoning.push('ℹ No reviews yet');
     }
@@ -398,7 +398,8 @@ export class AllocationService {
       return `No vehicles found matching your criteria for ${dto.city}.`;
     }
     const best = top3[0];
-    const rate = best.vehicle.selfDriveBaseRate || best.vehicle.driverIncludedRate;
+    const rate =
+      best.vehicle.selfDriveBaseRate || best.vehicle.driverIncludedRate;
     const totalCost = rate * totalDays;
     return (
       `Based on ${totalDays} day(s) in ${dto.city}, the AI agent ` +

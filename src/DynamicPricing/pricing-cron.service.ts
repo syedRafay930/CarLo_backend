@@ -9,7 +9,9 @@ export class PricingCronService implements OnModuleInit {
   constructor(private dynamicPricingService: DynamicPricingService) {}
 
   onModuleInit() {
-    this.logger.log('[PricingCronService] Initializing nightly cron (0 2 * * *)');
+    this.logger.log(
+      '[PricingCronService] Initializing nightly cron (0 2 * * *)',
+    );
   }
 
   @Cron('0 2 * * *')

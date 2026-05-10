@@ -117,10 +117,9 @@ export class HostService {
       order: { id: 'ASC' },
     });
 
-    const fleetName = [user.firstName, user.lastName]
-      .filter(Boolean)
-      .join(' ')
-      .trim() || 'My Fleet';
+    const fleetName =
+      [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
+      'My Fleet';
 
     const fleet = this.fleetRepo.create({
       name: `${fleetName} (Host)`,

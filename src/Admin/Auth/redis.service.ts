@@ -3,7 +3,10 @@ import { Redis } from 'ioredis';
 
 /** Single shared Redis client for JWT blacklist, login cooldown, password-reset tokens. */
 const REDIS_URL = () =>
-  (process.env.REDIS_URL?.trim() || 'redis://localhost:6379').replace(/\/$/, '');
+  (process.env.REDIS_URL?.trim() || 'redis://localhost:6379').replace(
+    /\/$/,
+    '',
+  );
 
 @Injectable()
 export class RedisService {

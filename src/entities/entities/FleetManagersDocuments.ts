@@ -5,94 +5,94 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { FleetRegistrationApplications } from "./FleetRegistrationApplications";
-import { FleetManagers } from "./FleetManagers";
-import { Admin } from "./Admin";
+} from 'typeorm';
+import { FleetRegistrationApplications } from './FleetRegistrationApplications';
+import { FleetManagers } from './FleetManagers';
+import { Admin } from './Admin';
 
-@Index("fleet_managers_documents_pkey", ["id"], { unique: true })
-@Entity("fleet_managers_documents", { schema: "public" })
+@Index('fleet_managers_documents_pkey', ['id'], { unique: true })
+@Entity('fleet_managers_documents', { schema: 'public' })
 export class FleetManagersDocuments {
-  @PrimaryGeneratedColumn({ type: "integer", name: "id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;
 
-  @Column("character varying", { name: "document_type", length: 100 })
+  @Column('character varying', { name: 'document_type', length: 100 })
   documentType: string;
 
-  @Column("character varying", { name: "document_url", length: 500 })
+  @Column('character varying', { name: 'document_url', length: 500 })
   documentUrl: string;
 
-  @Column("timestamp without time zone", {
-    name: "upload_date",
-    default: () => "now()",
+  @Column('timestamp without time zone', {
+    name: 'upload_date',
+    default: () => 'now()',
   })
   uploadDate: Date;
 
-  @Column("enum", {
-    name: "verification_status",
+  @Column('enum', {
+    name: 'verification_status',
     enum: [
-      "pending",
-      "in_review",
-      "verified",
-      "rejected",
-      "ocr_passed",
-      "ocr_flagged",
+      'pending',
+      'in_review',
+      'verified',
+      'rejected',
+      'ocr_passed',
+      'ocr_flagged',
     ],
     default: () => "'pending'",
   })
   verificationStatus:
-    | "pending"
-    | "in_review"
-    | "verified"
-    | "rejected"
-    | "ocr_passed"
-    | "ocr_flagged";
+    | 'pending'
+    | 'in_review'
+    | 'verified'
+    | 'rejected'
+    | 'ocr_passed'
+    | 'ocr_flagged';
 
-  @Column("timestamp without time zone", {
-    name: "verified_at",
+  @Column('timestamp without time zone', {
+    name: 'verified_at',
     nullable: true,
   })
   verifiedAt: Date | null;
 
-  @Column("text", { name: "rejection_reason", nullable: true })
+  @Column('text', { name: 'rejection_reason', nullable: true })
   rejectionReason: string | null;
 
-  @Column("boolean", { name: "is_deleted", default: () => "false" })
+  @Column('boolean', { name: 'is_deleted', default: () => 'false' })
   isDeleted: boolean;
 
-  @Column("timestamp without time zone", {
-    name: "created_at",
-    default: () => "now()",
+  @Column('timestamp without time zone', {
+    name: 'created_at',
+    default: () => 'now()',
   })
   createdAt: Date;
 
-  @Column("timestamp without time zone", {
-    name: "updated_at",
-    default: () => "now()",
+  @Column('timestamp without time zone', {
+    name: 'updated_at',
+    default: () => 'now()',
   })
   updatedAt: Date;
 
-  @Column("text", { name: "ai_result_json", nullable: true })
+  @Column('text', { name: 'ai_result_json', nullable: true })
   aiResultJson: string | null;
 
   @ManyToOne(
     () => FleetRegistrationApplications,
     (fleetRegistrationApplications) =>
       fleetRegistrationApplications.fleetManagersDocuments,
-    { onDelete: "CASCADE" }
+    { onDelete: 'CASCADE' },
   )
-  @JoinColumn([{ name: "application_id", referencedColumnName: "id" }])
+  @JoinColumn([{ name: 'application_id', referencedColumnName: 'id' }])
   application: FleetRegistrationApplications | null;
 
   @ManyToOne(
     () => FleetManagers,
     (fleetManagers) => fleetManagers.fleetManagersDocuments,
-    { onDelete: "CASCADE" }
+    { onDelete: 'CASCADE' },
   )
-  @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
+  @JoinColumn([{ name: 'fleet_manager_id', referencedColumnName: 'id' }])
   fleetManager: FleetManagers | null;
 
   @ManyToOne(() => Admin, (admin) => admin.fleetManagersDocuments)
-  @JoinColumn([{ name: "verified_by", referencedColumnName: "id" }])
+  @JoinColumn([{ name: 'verified_by', referencedColumnName: 'id' }])
   verifiedBy: Admin;
 }

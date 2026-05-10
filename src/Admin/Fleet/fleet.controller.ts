@@ -279,7 +279,9 @@ export class FleetController {
         application.cnic,
       );
     } else {
-      throw new BadRequestException('CNIC Front, Back and Shop Paper are mandatory for verification');
+      throw new BadRequestException(
+        'CNIC Front, Back and Shop Paper are mandatory for verification',
+      );
     }
 
     return this.fleetService.uploadDocuments(

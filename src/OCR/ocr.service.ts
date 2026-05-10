@@ -4,8 +4,9 @@ import * as fs from 'fs';
 
 @Injectable()
 export class OcrService implements OnModuleInit {
-  private visionClient: import('@google-cloud/vision').ImageAnnotatorClient | null =
-    null;
+  private visionClient:
+    | import('@google-cloud/vision').ImageAnnotatorClient
+    | null = null;
   private readonly logger = new Logger(OcrService.name);
 
   onModuleInit() {
@@ -24,7 +25,6 @@ export class OcrService implements OnModuleInit {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const vision = require('@google-cloud/vision');
       this.visionClient = new vision.ImageAnnotatorClient({ keyFilename });
       this.logger.log(

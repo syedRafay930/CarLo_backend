@@ -9,7 +9,6 @@ import { AnalyticsModule } from 'src/Analytics/analytics.module';
 import { Users } from 'src/entities/entities/Users';
 import { UserFavoriteVehicles } from 'src/entities/entities/UserFavoriteVehicles';
 
-
 @Module({
   imports: [
     TypeOrmModule.forFeature([Users, UserFavoriteVehicles]),

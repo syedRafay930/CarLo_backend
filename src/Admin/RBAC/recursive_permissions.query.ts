@@ -32,7 +32,6 @@ export const TRUE_RECURSIVE_RELATION_QUERY = `
   SELECT DISTINCT id FROM all_relations;
 `;
 
-
 export const FALSE_RECURSIVE_RELATION_QUERY = `WITH RECURSIVE all_children AS (
   SELECT * FROM relation_module WHERE parent_module_id = $1
 

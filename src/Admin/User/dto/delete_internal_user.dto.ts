@@ -1,10 +1,7 @@
-import {
-    IsNotEmpty,
-    IsBoolean
-} from 'class-validator';
+import { IsNotEmpty, IsBoolean } from 'class-validator';
 
 export class DeleteInternalUserDto {
   @IsNotEmpty()
   @IsBoolean()
-  isdelete: boolean
+  isdelete: boolean;
 }

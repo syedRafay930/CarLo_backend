@@ -27,10 +27,10 @@ import { NotificationModule } from './Admin/notification/notification.module';
       type: 'postgres',
       url: process.env.DATABASE_URL,
       ssl: {
-        rejectUnauthorized: false, 
+        rejectUnauthorized: false,
       },
       autoLoadEntities: true,
-      synchronize: false, 
+      synchronize: false,
     }),
 
     AdminAppModule,

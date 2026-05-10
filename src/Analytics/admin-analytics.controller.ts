@@ -8,13 +8,9 @@ export class AdminAnalyticsController {
 
   @Get('platform')
   @UseGuards(JwtBlacklistGuard)
-  getPlatformAnalytics(
-    @Query('period') period: '7d' | '30d' | '90d' = '30d',
-  ) {
+  getPlatformAnalytics(@Query('period') period: '7d' | '30d' | '90d' = '30d') {
     const validPeriods = ['7d', '30d', '90d'];
     const safePeriod = validPeriods.includes(period) ? period : '30d';
-    return this.analyticsService.getPlatformAnalytics(
-      safePeriod as '7d' | '30d' | '90d',
-    );
+    return this.analyticsService.getPlatformAnalytics(safePeriod);
   }
 }

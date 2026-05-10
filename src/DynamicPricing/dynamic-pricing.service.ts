@@ -9,7 +9,10 @@ import { Repository } from 'typeorm';
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
 import { VehicleDynamicPricing } from 'src/entities/entities/VehicleDynamicPricing';
 import { Bookings } from 'src/entities/entities/Bookings';
-import { PricingBreakdown, PricingEngineService } from './pricing-engine.service';
+import {
+  PricingBreakdown,
+  PricingEngineService,
+} from './pricing-engine.service';
 
 /** Bookings that count toward demand/utilization (excludes cancelled/rejected). */
 const FM_PRICING_STATUSES_EXCLUDE = ['cancelled', 'rejected'] as const;
@@ -104,9 +107,7 @@ export class DynamicPricingService {
   ): Promise<VehicleDynamicPricing | null> {
     const baseRaw = vehicle.selfDriveBaseRate;
     const baseRate =
-      typeof baseRaw === 'string'
-        ? parseFloat(baseRaw)
-        : Number(baseRaw ?? 0);
+      typeof baseRaw === 'string' ? parseFloat(baseRaw) : Number(baseRaw ?? 0);
     if (!Number.isFinite(baseRate) || baseRate <= 0) return null;
 
     const sevenDaysAgo = new Date(targetDate);
@@ -260,9 +261,7 @@ export class DynamicPricingService {
 
     const baseRaw = vehicle.selfDriveBaseRate;
     const baseRate =
-      typeof baseRaw === 'string'
-        ? parseFloat(baseRaw)
-        : Number(baseRaw ?? 0);
+      typeof baseRaw === 'string' ? parseFloat(baseRaw) : Number(baseRaw ?? 0);
 
     if (!active) {
       return {
@@ -290,9 +289,7 @@ export class DynamicPricingService {
     };
   }
 
-  async getPricingHistory(
-    vehicleId: number,
-  ): Promise<VehicleDynamicPricing[]> {
+  async getPricingHistory(vehicleId: number): Promise<VehicleDynamicPricing[]> {
     return this.pricingRepo.find({
       where: { vehicle: { id: vehicleId } },
       order: { startDateTime: 'DESC' },
@@ -312,7 +309,10 @@ export class DynamicPricingService {
       throw new ForbiddenException('Vehicle not found in your fleet');
     }
     await this.vehicleRepo.update(vehicleId, {
-      maxAdjustmentPercent: Math.min(50, Math.max(0, config.maxAdjustmentPercent)),
+      maxAdjustmentPercent: Math.min(
+        50,
+        Math.max(0, config.maxAdjustmentPercent),
+      ),
       dynamicPricingEnabled: config.dynamicPricingEnabled,
     });
   }
@@ -425,14 +425,11 @@ export class DynamicPricingService {
       }
     }
 
-    const pricingByCity = Array.from(cityMap.entries()).map(
-      ([city, data]) => ({
-        city,
-        count: data.count,
-        avgRate:
-          data.count > 0 ? Math.round(data.totalRate / data.count) : 0,
-      }),
-    );
+    const pricingByCity = Array.from(cityMap.entries()).map(([city, data]) => ({
+      city,
+      count: data.count,
+      avgRate: data.count > 0 ? Math.round(data.totalRate / data.count) : 0,
+    }));
 
     const avgMultiplier =
       multipliers.length > 0

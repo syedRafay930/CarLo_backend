@@ -41,14 +41,13 @@ export enum PricingModel {
 }
 
 export enum VehicleStatus {
-    available = 'available',
-    on_rent = 'on_rent',
-    maintenance = 'maintenance',
-    decommissioned = 'decommissioned',
+  available = 'available',
+  on_rent = 'on_rent',
+  maintenance = 'maintenance',
+  decommissioned = 'decommissioned',
 }
 
 export class CreateVehicleDto {
-
   @IsEnum(VehicleType)
   @IsNotEmpty()
   vehicleType: VehicleType;
@@ -118,7 +117,6 @@ export class CreateVehicleDto {
   @IsNotEmpty()
   pricingModel: PricingModel;
 
-  
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
@@ -127,7 +125,7 @@ export class CreateVehicleDto {
   @IsNumber()
   @IsOptional()
   @Min(0)
-  fuelChargePerKmIfEmpty?: number; 
+  fuelChargePerKmIfEmpty?: number;
 
   @IsNumber()
   @IsOptional()

@@ -108,7 +108,7 @@ export class FleetService {
         // subscription: dto.company.subscription,
         isActive: false,
         isDelete: false,
-      }) as FleetManagers;
+      });
       const savedFleet = await queryRunner.manager.save(fleet);
 
       const role = await this.fleetUserRoleRepository.findOne({
@@ -141,7 +141,7 @@ export class FleetService {
         isFirstlogin: !passwordWasSet,
         isActive: passwordWasSet,
         isDelete: false,
-      }) as FleetManagerUsers;
+      });
       const savedFleetUser = await queryRunner.manager.save(fleetUser);
       await queryRunner.commitTransaction();
       return {
@@ -453,7 +453,10 @@ export class FleetService {
     });
 
     if (existing) {
-      if (existing.status === ApplicationStatus.REJECTED || existing.status === ApplicationStatus.PENDING) {
+      if (
+        existing.status === ApplicationStatus.REJECTED ||
+        existing.status === ApplicationStatus.PENDING
+      ) {
         await this.appRepo.update(existing.id, {
           businessName: dto.business_name,
           ownerFirstName: dto.owner_first_name,
@@ -651,8 +654,7 @@ export class FleetService {
       );
       return data;
     } catch (err: any) {
-      const msg =
-        err?.response?.data || 'Document verification failed';
+      const msg = err?.response?.data || 'Document verification failed';
       throw new BadRequestException(msg);
     }
   }

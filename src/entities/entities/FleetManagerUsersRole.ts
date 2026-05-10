@@ -6,43 +6,43 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { FleetManagerUsers } from "./FleetManagerUsers";
-import { FleetManagers } from "./FleetManagers";
-import { FmRolePermissions } from "./FmRolePermissions";
+} from 'typeorm';
+import { FleetManagerUsers } from './FleetManagerUsers';
+import { FleetManagers } from './FleetManagers';
+import { FmRolePermissions } from './FmRolePermissions';
 
-@Index("fleet_manager_users_role_pkey", ["id"], { unique: true })
-@Entity("fleet_manager_users_role", { schema: "public" })
+@Index('fleet_manager_users_role_pkey', ['id'], { unique: true })
+@Entity('fleet_manager_users_role', { schema: 'public' })
 export class FleetManagerUsersRole {
-  @PrimaryGeneratedColumn({ type: "integer", name: "id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;
 
-  @Column("character varying", {
-    name: "role_name",
+  @Column('character varying', {
+    name: 'role_name',
     nullable: true,
     length: 100,
   })
   roleName: string | null;
 
-  @Column("timestamp without time zone", { name: "created_at", nullable: true })
+  @Column('timestamp without time zone', { name: 'created_at', nullable: true })
   createdAt: Date | null;
 
   @OneToMany(
     () => FleetManagerUsers,
-    (fleetManagerUsers) => fleetManagerUsers.fmUsersRole
+    (fleetManagerUsers) => fleetManagerUsers.fmUsersRole,
   )
   fleetManagerUsers: FleetManagerUsers[];
 
   @ManyToOne(
     () => FleetManagers,
-    (fleetManagers) => fleetManagers.fleetManagerUsersRoles
+    (fleetManagers) => fleetManagers.fleetManagerUsersRoles,
   )
-  @JoinColumn([{ name: "fleet_manager_id", referencedColumnName: "id" }])
+  @JoinColumn([{ name: 'fleet_manager_id', referencedColumnName: 'id' }])
   fleetManager: FleetManagers;
 
   @OneToMany(
     () => FmRolePermissions,
-    (fmRolePermissions) => fmRolePermissions.role
+    (fmRolePermissions) => fmRolePermissions.role,
   )
   fmRolePermissions: FmRolePermissions[];
 }

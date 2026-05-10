@@ -21,11 +21,7 @@ import { PricingCronService } from './pricing-cron.service';
     AuthModule,
   ],
   controllers: [DynamicPricingController],
-  providers: [
-    DynamicPricingService,
-    PricingEngineService,
-    PricingCronService,
-  ],
+  providers: [DynamicPricingService, PricingEngineService, PricingCronService],
   exports: [DynamicPricingService],
 })
 export class DynamicPricingModule {}

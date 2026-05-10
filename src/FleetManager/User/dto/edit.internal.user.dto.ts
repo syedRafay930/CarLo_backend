@@ -26,7 +26,7 @@ export class FM_EditInternalUserDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-  
+
   @IsOptional()
   @IsBoolean()
   isdelete?: boolean;
@@ -34,9 +34,8 @@ export class FM_EditInternalUserDto {
   @IsOptional()
   @IsString()
   cnic?: string;
-  
+
   @IsOptional()
   @IsString()
   dob?: string;
-
 }

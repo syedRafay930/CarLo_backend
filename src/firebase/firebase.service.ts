@@ -117,7 +117,9 @@ export class FirebaseService {
     }));
   }
 
-  async getTokensOfFleetAdmin(): Promise<{ token: string; fleet_user_id: number }[]> {
+  async getTokensOfFleetAdmin(): Promise<
+    { token: string; fleet_user_id: number }[]
+  > {
     const tokens = await this.fleetfcmRepo
       .createQueryBuilder('token')
       .innerJoin('token.fleetUser', 'fleetUser')
@@ -137,7 +139,7 @@ export class FirebaseService {
     title: string;
     body: string;
     request_id?: number;
-    application_id?: number;  
+    application_id?: number;
     sender_id?: number;
     type?: string;
     redirect_url?: string;

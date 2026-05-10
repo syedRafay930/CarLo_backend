@@ -26,8 +26,8 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy , RedisService],
+  providers: [AuthService, JwtStrategy, RedisService],
   controllers: [AuthController],
-  exports: [RedisService , JwtModule, AuthService]
+  exports: [RedisService, JwtModule, AuthService],
 })
 export class AuthModule {}

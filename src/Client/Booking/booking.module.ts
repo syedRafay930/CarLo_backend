@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { BookingService } from "./booking.service";
-import { BookingController } from "./booking.controller";
+import { BookingService } from './booking.service';
+import { BookingController } from './booking.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Bookings } from 'src/entities/entities/Bookings';
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
@@ -12,7 +12,12 @@ import { Transactions } from 'src/entities/entities/Transactions';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Bookings, FleetManagerVehicles, Users, Transactions]),
+    TypeOrmModule.forFeature([
+      Bookings,
+      FleetManagerVehicles,
+      Users,
+      Transactions,
+    ]),
     forwardRef(() => ClientUsersModule),
     forwardRef(() => VehicleModule),
     forwardRef(() => AuthModule),

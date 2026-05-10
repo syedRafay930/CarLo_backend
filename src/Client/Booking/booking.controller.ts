@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Req, UseGuards, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create_booking.dto';
 import { ClientJwtBlacklistGuard } from '../Auth/guards/jwt.guard';
@@ -10,7 +18,10 @@ export class BookingController {
 
   @UseGuards(ClientJwtBlacklistGuard)
   @Post('create')
-  async createBooking(@Req() req: any, @Body() createBookingDto: CreateBookingDto) {
+  async createBooking(
+    @Req() req: any,
+    @Body() createBookingDto: CreateBookingDto,
+  ) {
     const booking = await this.bookingService.createBooking(
       createBookingDto,
       req.user.client_email,

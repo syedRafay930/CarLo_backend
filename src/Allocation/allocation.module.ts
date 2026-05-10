@@ -9,11 +9,7 @@ import { AllocationService } from './allocation.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      FleetManagerVehicles,
-      VehicleRatings,
-      Bookings,
-    ]),
+    TypeOrmModule.forFeature([FleetManagerVehicles, VehicleRatings, Bookings]),
     AuthModule,
   ],
   controllers: [AllocationController],

@@ -119,7 +119,7 @@ export class VehicleService {
         createdAt: new Date(),
       });
     });
-    
+
     const savedDocuments = await this.documentRepository.save(documentEntities);
 
     return savedDocuments.map((doc) => ({

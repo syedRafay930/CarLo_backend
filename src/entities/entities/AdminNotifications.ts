@@ -9,7 +9,7 @@ import {
 import { Admin } from './Admin';
 import { Requests } from './Requests';
 import { FleetManagerUsers } from './FleetManagerUsers';
-import { FleetRegistrationApplications } from "./FleetRegistrationApplications";
+import { FleetRegistrationApplications } from './FleetRegistrationApplications';
 
 @Index('admin_notifications_pkey', ['id'], { unique: true })
 @Entity('admin_notifications', { schema: 'public' })

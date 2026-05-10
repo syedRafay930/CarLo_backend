@@ -244,9 +244,7 @@ export class FmBookingService {
     };
   }
 
-  private async getFleetVehicleIds(
-    fleetManagerId: number,
-  ): Promise<number[]> {
+  private async getFleetVehicleIds(fleetManagerId: number): Promise<number[]> {
     const vehicles = await this.vehicleRepo.find({
       where: { fleetManager: { id: fleetManagerId } },
       select: ['id'],

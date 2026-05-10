@@ -97,7 +97,10 @@ export class AnalyticsService {
     const currentRevenue = await this.bookingRepo
       .createQueryBuilder('b')
       .select(`COALESCE(SUM(${line}), 0)`, 'total')
-      .where('b.createdAt BETWEEN :start AND :end', { start: startDate, end: endDate })
+      .where('b.createdAt BETWEEN :start AND :end', {
+        start: startDate,
+        end: endDate,
+      })
       .andWhere('b.status NOT IN (:...revExcl)', {
         revExcl: ['cancelled', 'rejected'],
       })
@@ -118,16 +121,11 @@ export class AnalyticsService {
     const current = parseFloat(String(currentRevenue?.total ?? 0)) || 0;
     const previous = parseFloat(String(previousRevenue?.total ?? 0)) || 0;
     const change =
-      previous > 0
-        ? Math.round(((current - previous) / previous) * 100)
-        : 0;
+      previous > 0 ? Math.round(((current - previous) / previous) * 100) : 0;
 
     const dailyRevenue = await this.bookingRepo
       .createQueryBuilder('b')
-      .select(
-        `TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`,
-        'date',
-      )
+      .select(`TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`, 'date')
       .addSelect(`COALESCE(SUM(${line}), 0)`, 'value')
       .where('b.createdAt BETWEEN :start AND :end', {
         start: startDate,
@@ -198,10 +196,7 @@ export class AnalyticsService {
 
     const dailyBookings = await this.bookingRepo
       .createQueryBuilder('b')
-      .select(
-        `TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`,
-        'date',
-      )
+      .select(`TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`, 'date')
       .addSelect('COUNT(b.id)', 'value')
       .where('b.createdAt BETWEEN :start AND :end', {
         start: startDate,
@@ -424,18 +419,8 @@ export class AnalyticsService {
     }
 
     const [revenue, bookings, vehicleAnalytics] = await Promise.all([
-      this.getFleetRevenue(
-        vehicleIds,
-        startDate,
-        endDate,
-        previousStartDate,
-      ),
-      this.getFleetBookings(
-        vehicleIds,
-        startDate,
-        endDate,
-        previousStartDate,
-      ),
+      this.getFleetRevenue(vehicleIds, startDate, endDate, previousStartDate),
+      this.getFleetBookings(vehicleIds, startDate, endDate, previousStartDate),
       this.getFleetVehicleAnalytics(vehicleIds, startDate, endDate),
     ]);
 
@@ -487,10 +472,7 @@ export class AnalyticsService {
     const dailyRevenue = await this.bookingRepo
       .createQueryBuilder('b')
       .innerJoin('b.vehicle', 'v')
-      .select(
-        `TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`,
-        'date',
-      )
+      .select(`TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`, 'date')
       .addSelect(`COALESCE(SUM(${line}), 0)`, 'value')
       .where('v.id IN (:...ids)', { ids: vehicleIds })
       .andWhere('b.createdAt BETWEEN :start AND :end', {
@@ -549,10 +531,7 @@ export class AnalyticsService {
     const dailyBookings = await this.bookingRepo
       .createQueryBuilder('b')
       .innerJoin('b.vehicle', 'v')
-      .select(
-        `TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`,
-        'date',
-      )
+      .select(`TO_CHAR(DATE_TRUNC('day', b.createdAt), 'YYYY-MM-DD')`, 'date')
       .addSelect('COUNT(b.id)', 'value')
       .where('v.id IN (:...ids)', { ids: vehicleIds })
       .andWhere('b.createdAt BETWEEN :start AND :end', {
@@ -577,10 +556,8 @@ export class AnalyticsService {
       .getRawMany();
 
     const totalForPct =
-      statusBreakdown.reduce(
-        (s, r) => s + parseInt(String(r.count), 10),
-        0,
-      ) || 1;
+      statusBreakdown.reduce((s, r) => s + parseInt(String(r.count), 10), 0) ||
+      1;
 
     return {
       totalBookings: currentCount,
@@ -747,8 +724,7 @@ export class AnalyticsService {
     const bookingAmount = (b: Bookings) => {
       const f = b.finalAmountSettled;
       const i = b.initialTotalCharge;
-      const n =
-        parseFloat(String(f != null && f !== '' ? f : i ?? '0')) || 0;
+      const n = parseFloat(String(f != null && f !== '' ? f : (i ?? '0'))) || 0;
       return n;
     };
 
@@ -768,9 +744,7 @@ export class AnalyticsService {
     ).length;
 
     const avgValue =
-      allBookings.length > 0
-        ? Math.round(totalSpend / allBookings.length)
-        : 0;
+      allBookings.length > 0 ? Math.round(totalSpend / allBookings.length) : 0;
 
     const typeCount: Record<string, number> = {};
     for (const b of allBookings) {
@@ -778,8 +752,7 @@ export class AnalyticsService {
       if (t) typeCount[t] = (typeCount[t] || 0) + 1;
     }
     const favoriteType =
-      Object.entries(typeCount).sort(([, a], [, b]) => b - a)[0]?.[0] ??
-      null;
+      Object.entries(typeCount).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null;
 
     const monthlySpend: Record<string, number> = {};
     for (const b of allBookings) {

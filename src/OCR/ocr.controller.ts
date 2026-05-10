@@ -31,10 +31,7 @@ export class OcrController {
 
   @Get('admin/document-queue')
   @UseGuards(JwtBlacklistGuard)
-  documentQueue(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  documentQueue(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.workflow.listDocumentQueue(
       page ? parseInt(page, 10) || 1 : 1,
       limit ? parseInt(limit, 10) || 40 : 40,

@@ -90,9 +90,7 @@ export class DocumentParserService {
     const match = text.match(/Father Name\s*\n([A-Za-z\s]+)\n/);
     if (match) return match[1].trim();
 
-    const idx = lines.findIndex((l) =>
-      l.toLowerCase().includes('father name'),
-    );
+    const idx = lines.findIndex((l) => l.toLowerCase().includes('father name'));
     if (idx >= 0 && lines[idx + 1]) {
       const candidate = lines[idx + 1];
       if (/^[A-Za-z\s]+$/.test(candidate)) return candidate.trim();

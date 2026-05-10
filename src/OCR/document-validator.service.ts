@@ -226,7 +226,9 @@ export class DocumentValidatorService {
     if (params.dlFront?.validUpto) {
       const expiry = this.parseDlDateString(params.dlFront.validUpto);
       licenseNotExpired =
-        expiry != null && !Number.isNaN(expiry.getTime()) && expiry > new Date();
+        expiry != null &&
+        !Number.isNaN(expiry.getTime()) &&
+        expiry > new Date();
       if (!licenseNotExpired) issues.push('Driving license is expired');
     }
 

@@ -4,30 +4,30 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { FmRelationModule } from "./FmRelationModule";
+} from 'typeorm';
+import { FmRelationModule } from './FmRelationModule';
 
-@Index("fm_modules_pkey", ["id"], { unique: true })
-@Entity("fm_modules", { schema: "public" })
+@Index('fm_modules_pkey', ['id'], { unique: true })
+@Entity('fm_modules', { schema: 'public' })
 export class FmModules {
-  @PrimaryGeneratedColumn({ type: "integer", name: "id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;
 
-  @Column("character varying", { name: "module_name", length: 100 })
+  @Column('character varying', { name: 'module_name', length: 100 })
   moduleName: string;
 
-  @Column("timestamp without time zone", { name: "created_at", nullable: true })
+  @Column('timestamp without time zone', { name: 'created_at', nullable: true })
   createdAt: Date | null;
 
   @OneToMany(
     () => FmRelationModule,
-    (fmRelationModule) => fmRelationModule.childModule
+    (fmRelationModule) => fmRelationModule.childModule,
   )
   fmRelationModules: FmRelationModule[];
 
   @OneToMany(
     () => FmRelationModule,
-    (fmRelationModule) => fmRelationModule.parentModule
+    (fmRelationModule) => fmRelationModule.parentModule,
   )
   fmRelationModules2: FmRelationModule[];
 }

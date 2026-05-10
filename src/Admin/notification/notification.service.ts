@@ -143,7 +143,9 @@ export class AdminNotificationService {
       isActive: true,
       isDelete: false,
       createdAt: new Date(),
-      subscriptionId: application.subscriptions ? application.subscriptions.id : null,
+      subscriptionId: application.subscriptions
+        ? application.subscriptions.id
+        : null,
     });
     const savedFleet = await this.fleetRepo.save(fleet);
 

@@ -112,5 +112,4 @@ export class EditVehicleDto {
   @IsBoolean()
   @IsOptional()
   isDeleted?: boolean;
-
 }
