@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ChatbotGraphService } from './chatbot-graph.service';
 import type { ChatHistoryTurn } from './graph/chat-state';
 
 @Injectable()
 export class ChatbotService {
+  private readonly logger = new Logger(ChatbotService.name);
+
   constructor(private readonly chatbotGraph: ChatbotGraphService) {}
 
   async chat(
@@ -27,7 +29,10 @@ export class ChatbotService {
         userEmail,
         conversationHistory: normalizedHistory,
       });
-    } catch {
+    } catch (err) {
+      this.logger.warn(
+        `Chatbot invoke failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
       return 'Sorry — CarLo Assistant is having a moment. Please try again in a little while.';
     }
   }

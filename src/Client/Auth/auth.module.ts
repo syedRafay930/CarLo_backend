@@ -34,6 +34,8 @@ import { ClientJwtBlacklistGuard } from './guards/jwt.guard';
     ClientAuthService,
     ClientJwtStrategy,
     ClientJwtBlacklistGuard,
+    // Re-export so modules that only import ClientAuthModule can inject RedisService into ClientJwtBlacklistGuard.
+    AuthModule,
   ],
 })
 export class ClientAuthModule {}
