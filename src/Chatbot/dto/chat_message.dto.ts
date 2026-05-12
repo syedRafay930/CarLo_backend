@@ -10,8 +10,8 @@ import {
 } from 'class-validator';
 
 export class ChatHistoryItemDto {
-  @IsIn(['user', 'model'])
-  role: 'user' | 'model';
+  @IsIn(['user', 'assistant', 'model'])
+  role: 'user' | 'assistant' | 'model';
 
   @IsString()
   @IsNotEmpty()
@@ -24,6 +24,12 @@ export class ChatMessageDto {
   @IsNotEmpty()
   @MaxLength(1000)
   message: string;
+
+  /** Ignored for identity: email comes from JWT on /message. Kept for backward compatibility. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  userEmail?: string;
 
   @IsOptional()
   @IsArray()

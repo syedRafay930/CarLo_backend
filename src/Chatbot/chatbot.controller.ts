@@ -1,15 +1,30 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ChatbotService } from './chatbot.service';
 import { ChatMessageDto } from './dto/chat_message.dto';
+import { JwtGuard } from 'src/Client/Auth/guards/jwt.guard';
 
 @Controller('client/chatbot')
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
+  @UseGuards(JwtGuard)
   @Post('message')
-  async sendMessage(@Body() dto: ChatMessageDto) {
+  async sendMessage(@Body() dto: ChatMessageDto, @Req() req: { user?: { client_email?: string } }) {
     const history = dto.history ?? [];
-    const reply = await this.chatbotService.chat(dto.message, history);
+    const userEmail =
+      req.user?.client_email?.trim() ?? undefined;
+    const reply = await this.chatbotService.chat(
+      dto.message,
+      history,
+      userEmail,
+    );
     return {
       reply,
       timestamp: new Date().toISOString(),

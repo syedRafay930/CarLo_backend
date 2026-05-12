@@ -32,3 +32,6 @@ export class ClientJwtBlacklistGuard extends ClientJwtAuthGuard {
     return super.canActivate(context) as Promise<boolean>;
   }
 }
+
+/** Alias for client routes that require JWT + blacklist check (same as booking endpoints). */
+export const JwtGuard = ClientJwtBlacklistGuard;
