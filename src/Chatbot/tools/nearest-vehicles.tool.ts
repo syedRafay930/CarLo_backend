@@ -6,6 +6,7 @@ import { serializeVehicle, SerializedVehicle } from './vehicle-serializer';
 export interface NearestVehiclesInput {
   city: string;
   vehicleType?: string;
+  serviceType?: 'self_drive' | 'with_driver';
 }
 
 /**
@@ -34,6 +35,13 @@ export class GetNearestVehiclesTool {
         .andWhere('v.vehicleStatus = :vs', { vs: 'available' })
         .andWhere('v.isDeleted = :del', { del: false })
         .andWhere('fm.city ILIKE :city', { city: `%${city}%` });
+
+      if (input.serviceType === 'self_drive') {
+        qb.andWhere("v.driverServiceOption IN ('self_drive_only', 'both')");
+      }
+      if (input.serviceType === 'with_driver') {
+        qb.andWhere("v.driverServiceOption IN ('driver_included', 'both')");
+      }
 
       if (input.vehicleType?.trim()) {
         qb.andWhere('v.vehicleType = :vt', { vt: input.vehicleType.trim() });

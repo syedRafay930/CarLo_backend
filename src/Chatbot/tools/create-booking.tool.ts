@@ -18,18 +18,6 @@ export interface CreateBookingToolInput {
   userEmail: string;
 }
 
-const BOOKING_CORE_FIELDS: (keyof Omit<
-  CreateBookingToolInput,
-  'userEmail' | 'priceModel'
->)[] = [
-  'vehicleId',
-  'pickupDate',
-  'returnDate',
-  'pickupLocation',
-  'returnLocation',
-  'serviceType',
-];
-
 export type CreateBookingToolResult =
   | {
       type: 'SUCCESS';
@@ -69,13 +57,19 @@ export class CreateBookingTool {
     input: Partial<CreateBookingToolInput>,
     userEmail?: string,
   ): Promise<CreateBookingToolResult> {
-    const missingBody: string[] = [];
-    for (const key of BOOKING_CORE_FIELDS) {
-      const v = input[key];
-      if (v === undefined || v === null || v === '') {
-        missingBody.push(key);
-      }
-    }
+    const required = [
+      'vehicleId',
+      'pickupDate',
+      'returnDate',
+      'pickupLocation',
+      'returnLocation',
+      'serviceType',
+    ] as const;
+    const missingBody: string[] = required.filter((f) => {
+      const v = input[f as keyof CreateBookingToolInput];
+      if (v === undefined || v === null) return true;
+      return String(v).trim() === '';
+    });
 
     const rawPrice = input.priceModel as unknown;
     let priceModel: CreateBookingToolInput['priceModel'] | undefined =
@@ -120,13 +114,15 @@ export class CreateBookingTool {
     }
 
     const email = userEmail.trim();
+    const serviceType = input.serviceType as 'self_drive' | 'with_driver';
+
     const dto = {
       vehicleId: input.vehicleId!,
       pickupDate: input.pickupDate!,
       returnDate: input.returnDate!,
       pickupLocation: input.pickupLocation!,
       returnLocation: input.returnLocation!,
-      serviceType: input.serviceType!,
+      serviceType,
       priceModel: priceModel!,
       Name: 'Chatbot',
       phone: '0000000000',

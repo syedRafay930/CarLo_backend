@@ -9,6 +9,7 @@ import { ClientAuthModule } from 'src/Client/Auth/auth.module';
 import { ChatbotController } from './chatbot.controller';
 import { ChatbotService } from './chatbot.service';
 import { ChatbotGraphService } from './chatbot-graph.service';
+import { GeocodingService } from './location/geocoding.service';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { ChatbotGraphService } from './chatbot-graph.service';
     ClientAuthModule,
   ],
   controllers: [ChatbotController],
-  providers: [ChatbotService, ChatbotGraphService],
+  providers: [ChatbotService, ChatbotGraphService, GeocodingService],
   exports: [ChatbotService],
 })
 export class ChatbotModule {}

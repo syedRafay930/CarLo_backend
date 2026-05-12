@@ -53,6 +53,7 @@ export class ChatbotGraphService {
     userMessage: string;
     userEmail?: string;
     conversationHistory: ChatHistoryTurn[];
+    userCity?: string | null;
   }): Promise<string> {
     const graph = this.ensureGraph();
     if (!graph) {
@@ -63,6 +64,7 @@ export class ChatbotGraphService {
       userMessage: params.userMessage,
       userEmail: params.userEmail?.trim() ?? '',
       conversationHistory: params.conversationHistory,
+      userCity: params.userCity ?? null,
       intent: '',
       toolKey: 'none',
       toolInput: {},

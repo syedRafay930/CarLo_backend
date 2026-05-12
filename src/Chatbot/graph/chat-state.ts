@@ -12,6 +12,8 @@ export interface ChatState {
   userMessage: string;
   userEmail: string;
   conversationHistory: ChatHistoryTurn[];
+  /** Resolved from GPS reverse geocode; null if unavailable */
+  userCity: string | null;
   intent: string;
   toolKey: string;
   toolInput: Record<string, unknown>;
@@ -24,6 +26,10 @@ export const ChatStateAnnotation = Annotation.Root({
   userMessage: Annotation<string>(),
   userEmail: Annotation<string>(),
   conversationHistory: Annotation<ChatHistoryTurn[]>(),
+  userCity: Annotation<string | null>({
+    reducer: (_, next) => next,
+    default: () => null,
+  }),
   intent: Annotation<string>(),
   toolKey: Annotation<string>(),
   toolInput: Annotation<any>(),

@@ -20,10 +20,15 @@ export class ChatbotController {
     const history = dto.history ?? [];
     const userEmail =
       req.user?.client_email?.trim() ?? undefined;
+    const coords =
+      dto.lat != null && dto.lng != null
+        ? { lat: dto.lat, lng: dto.lng }
+        : undefined;
     const reply = await this.chatbotService.chat(
       dto.message,
-      history,
       userEmail,
+      history,
+      coords,
     );
     return {
       reply,

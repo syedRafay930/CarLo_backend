@@ -6,6 +6,7 @@ import { serializeVehicle, SerializedVehicle } from './vehicle-serializer';
 export interface BestSellersInput {
   vehicleType?: string;
   city?: string;
+  serviceType?: 'self_drive' | 'with_driver';
 }
 
 export class GetBestSellersTool {
@@ -28,6 +29,13 @@ export class GetBestSellersTool {
       .andWhere('v.isApprovedByAdmin = :ap', { ap: true })
       .andWhere('v.vehicleStatus = :vs', { vs: 'available' })
       .andWhere('v.isDeleted = :del', { del: false });
+
+    if (input.serviceType === 'self_drive') {
+      qb.andWhere("v.driverServiceOption IN ('self_drive_only', 'both')");
+    }
+    if (input.serviceType === 'with_driver') {
+      qb.andWhere("v.driverServiceOption IN ('driver_included', 'both')");
+    }
 
     if (input.city?.trim()) {
       qb.andWhere('fm.city ILIKE :city', { city: `%${input.city.trim()}%` });

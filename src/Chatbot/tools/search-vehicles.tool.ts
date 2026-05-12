@@ -43,13 +43,10 @@ export class SearchVehiclesTool {
     }
 
     if (input.serviceType === 'self_drive') {
-      qb.andWhere('v.driverServiceOption IN (:...dso)', {
-        dso: ['self_drive_only', 'both'],
-      });
-    } else if (input.serviceType === 'with_driver') {
-      qb.andWhere('v.driverServiceOption IN (:...dso)', {
-        dso: ['driver_included', 'both'],
-      });
+      qb.andWhere("v.driverServiceOption IN ('self_drive_only', 'both')");
+    }
+    if (input.serviceType === 'with_driver') {
+      qb.andWhere("v.driverServiceOption IN ('driver_included', 'both')");
     }
 
     const candidates = await qb.orderBy('v.createdAt', 'DESC').take(80).getMany();

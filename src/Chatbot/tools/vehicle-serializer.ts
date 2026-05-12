@@ -1,50 +1,53 @@
 import { FleetManagerVehicles } from 'src/entities/entities/FleetManagerVehicles';
 
-export interface SerializedVehicle {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  vehicleType: string;
-  seatingCapacity: number;
-  transmissionType: string;
-  fuelType: string;
-  pricingModel: string;
-  selfDriveBaseRatePkr: number | null;
-  driverIncludedRatePkr: number | null;
-  driverServiceOption: string;
-  city: string | null;
-  fleetManagerName: string | null;
+export type SerializedVehicle = ReturnType<typeof serializeVehicle>;
+
+export type SerializedVehicleExtras = {
   completedBookingCount?: number;
   relevantBookingCount?: number;
-}
+};
 
 export function serializeVehicle(
   v: FleetManagerVehicles,
-  extras?: {
-    city?: string | null;
-    completedBookingCount?: number;
-    relevantBookingCount?: number;
-  },
-): SerializedVehicle {
+  extras?: SerializedVehicleExtras,
+): object {
+  const pricing: Record<string, string> = {};
+
+  if (
+    v.driverServiceOption === 'self_drive_only' ||
+    v.driverServiceOption === 'both'
+  ) {
+    pricing.selfDrive = v.selfDriveBaseRate
+      ? `PKR ${Number(v.selfDriveBaseRate).toLocaleString()} / ${v.pricingModel.replace('per_', 'per ')}`
+      : 'on request';
+  }
+
+  if (
+    v.driverServiceOption === 'driver_included' ||
+    v.driverServiceOption === 'both'
+  ) {
+    pricing.withDriver = v.driverIncludedRate
+      ? `PKR ${Number(v.driverIncludedRate).toLocaleString()} / ${v.pricingModel.replace('per_', 'per ')}`
+      : 'on request';
+  }
+
   return {
     id: v.id,
-    make: v.make,
-    model: v.model,
-    year: v.year,
-    vehicleType: v.vehicleType,
-    seatingCapacity: v.seatingCapacity,
-    transmissionType: v.transmissionType,
-    fuelType: v.fuelType,
-    pricingModel: v.pricingModel,
-    selfDriveBaseRatePkr:
-      v.selfDriveBaseRate != null ? Number(v.selfDriveBaseRate) : null,
-    driverIncludedRatePkr:
-      v.driverIncludedRate != null ? Number(v.driverIncludedRate) : null,
+    name: `${v.year} ${v.make} ${v.model}`,
+    type: v.vehicleType,
+    color: v.color ?? 'N/A',
+    seats: v.seatingCapacity,
+    transmission: v.transmissionType,
+    fuel: v.fuelType,
     driverServiceOption: v.driverServiceOption,
-    city: extras?.city ?? v.fleetManager?.city ?? null,
-    fleetManagerName: v.fleetManager?.name ?? null,
-    completedBookingCount: extras?.completedBookingCount,
-    relevantBookingCount: extras?.relevantBookingCount,
+    pricing,
+    fleet: v.fleetManager?.name ?? 'Unknown',
+    city: v.fleetManager?.city ?? 'N/A',
+    ...(extras?.completedBookingCount != null && {
+      completedBookingCount: extras.completedBookingCount,
+    }),
+    ...(extras?.relevantBookingCount != null && {
+      relevantBookingCount: extras.relevantBookingCount,
+    }),
   };
 }
