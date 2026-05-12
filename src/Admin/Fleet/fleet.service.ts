@@ -218,6 +218,7 @@ export class FleetService {
     files: Express.Multer.File[],
     documentTypes: string[],
     fleetManagerId?: number,
+    extractedData: Record<string, any> = {},
     applicationId?: number,
   ) {
     if (!fleetManagerId && !applicationId) {
@@ -249,12 +250,21 @@ export class FleetService {
     const uploadedResults = await Promise.all(uploadPromises);
 
     const documentEntities = uploadedResults.map((uploaded, index) => {
+      const docType = documentTypes[index];
+      const docExtractedData =
+        docType === 'cnic_front'
+          ? { cnic: extractedData?.cnic }
+          : docType === 'shop_paper'
+            ? extractedData?.shop_paper
+            : null;
+
       return this.fleetDocumentRepository.create({
         fleetManager: fleetManager ?? null,
         application: application ?? null,
-        documentType: documentTypes[index],
+        documentType: docType,
         documentUrl: uploaded.secure_url,
         verificationStatus: 'pending',
+        extractedData: docExtractedData ,
         uploadDate: new Date(),
         isDeleted: false,
         createdAt: new Date(),
@@ -356,8 +366,8 @@ export class FleetService {
       city: dto.fleet_city ?? fleet.city,
       state: dto.fleet_state ?? fleet.state,
       country: dto.fleet_country ?? fleet.country,
-      is_active: dto.is_active ?? fleet.isActive,
-      is_delete: dto.is_delete ?? fleet.isDelete,
+      isActive: dto.is_active ?? fleet.isActive,
+      isDelete: dto.is_delete ?? fleet.isDelete,
     });
 
     await this.fleetRepository.save(updated);
@@ -628,7 +638,7 @@ export class FleetService {
     shopPaper: Express.Multer.File,
     regNumber: string | null,
     cnicNumber: string | null,
-  ) {
+  ): Promise<{ cnic: string; shop_paper: Record<string, any> }> {
     const form = new FormData();
 
     form.append('cnic_front', cnicFront.buffer, {
@@ -652,7 +662,7 @@ export class FleetService {
         form,
         { headers: form.getHeaders() },
       );
-      return data;
+      return data.extracted_data;
     } catch (err: any) {
       const msg = err?.response?.data || 'Document verification failed';
       throw new BadRequestException(msg);

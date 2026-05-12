@@ -319,11 +319,12 @@ export class OcrWorkflowService {
     };
   }
 
-  async approveDocument(documentId: number, notes?: string) {
+  async approveDocument(documentId: number, notes?: string, adminId?: number) {
     const v = await this.docsRepo.findOne({ where: { id: documentId } });
     if (v) {
       await this.docsRepo.update(documentId, {
         verificationStatus: 'verified',
+        verifiedBy: adminId ? { id: adminId } as any : undefined,
         verificationResult: notes ?? v.verificationResult,
         verifiedAt: new Date(),
       });
@@ -335,6 +336,7 @@ export class OcrWorkflowService {
     if (f) {
       await this.fleetDocsRepo.update(documentId, {
         verificationStatus: 'verified',
+        verifiedBy: adminId ? { id: adminId } as any : undefined,
         verifiedAt: new Date(),
       });
       return { success: true, message: 'Document approved', scope: 'fleet' };
@@ -342,12 +344,13 @@ export class OcrWorkflowService {
     throw new NotFoundException('Document not found');
   }
 
-  async rejectDocument(documentId: number, reason: string) {
+  async rejectDocument(documentId: number, reason: string, adminId?: number) {
     const v = await this.docsRepo.findOne({ where: { id: documentId } });
     if (v) {
       await this.docsRepo.update(documentId, {
         verificationStatus: 'rejected',
         verificationResult: reason,
+        verifiedBy: adminId ? { id: adminId } as any : undefined,
       });
       return { success: true, message: 'Document rejected', scope: 'vehicle' };
     }
@@ -358,6 +361,7 @@ export class OcrWorkflowService {
       await this.fleetDocsRepo.update(documentId, {
         verificationStatus: 'rejected',
         rejectionReason: reason,
+        verifiedBy: adminId ? { id: adminId } as any : undefined,
       });
       return { success: true, message: 'Document rejected', scope: 'fleet' };
     }

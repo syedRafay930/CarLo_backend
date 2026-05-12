@@ -263,6 +263,8 @@ export class FleetController {
       fileMap[body.documentTypes[index]] = file;
     });
 
+    let extractedData: Record<string, any> = {}; 
+
     if (
       fileMap['cnic_front'] &&
       fileMap['cnic_back'] &&
@@ -271,25 +273,21 @@ export class FleetController {
       const application =
         await this.fleetService.getApplicationById(applicationId);
 
-      await this.fleetService.verifyFleetDocuments(
+      extractedData = await this.fleetService.verifyFleetDocuments(
         fileMap['cnic_front'],
         fileMap['cnic_back'],
         fileMap['shop_paper'],
         application.regNumber,
         application.cnic,
       );
-    } else {
-      throw new BadRequestException(
-        'CNIC Front, Back and Shop Paper are mandatory for verification',
+      return this.fleetService.uploadDocuments(
+        files,
+        body.documentTypes,
+        undefined,
+        extractedData,
+        applicationId,
       );
     }
-
-    return this.fleetService.uploadDocuments(
-      files,
-      body.documentTypes,
-      undefined,
-      applicationId,
-    );
   }
 
   @Get('subscriptions')

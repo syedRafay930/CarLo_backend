@@ -42,7 +42,7 @@ export class AdminNotificationService {
   async getAllNotifications(adminId: number) {
     const notifications = await this.notifRepo.find({
       where: { receiver: { id: adminId } },
-      relations: ['sender', 'sender.fleetManager', 'request', 'application'],
+      relations: ['sender', 'sender.fleetManager', 'request', 'application', 'request.vehicle'],
       select: {
         id: true,
         title: true,
@@ -58,7 +58,7 @@ export class AdminNotificationService {
           email: true,
           fleetManager: { id: true, name: true },
         },
-        request: { id: true, requestType: true, requestStatus: true },
+        request: { id: true, requestType: true, requestStatus: true, vehicle: { id: true, make: true, model: true, year: true } },
         application: {
           id: true,
           businessName: true,
@@ -82,6 +82,7 @@ export class AdminNotificationService {
         'sender',
         'sender.fleetManager',
         'request',
+        'request.vehicle',  
         'application',
         'application.fleetManagersDocuments',
         'application.reviewedBy',

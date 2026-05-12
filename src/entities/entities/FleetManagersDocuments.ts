@@ -75,6 +75,9 @@ export class FleetManagersDocuments {
   @Column('text', { name: 'ai_result_json', nullable: true })
   aiResultJson: string | null;
 
+  @Column('text', { name: 'extracted_data', nullable: true })
+  extractedData: string | null;
+
   @ManyToOne(
     () => FleetRegistrationApplications,
     (fleetRegistrationApplications) =>

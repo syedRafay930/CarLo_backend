@@ -77,8 +77,9 @@ export class OcrController {
   approveDocument(
     @Param('documentId') documentId: string,
     @Body() body: { notes?: string },
+    @Req() req ,
   ) {
-    return this.workflow.approveDocument(+documentId, body.notes);
+    return this.workflow.approveDocument(+documentId, body.notes, req.user.admin_id);
   }
 
   @Patch('admin/reject/:documentId')
@@ -86,8 +87,9 @@ export class OcrController {
   rejectDocument(
     @Param('documentId') documentId: string,
     @Body() body: { reason: string },
+    @Req() req ,
   ) {
-    return this.workflow.rejectDocument(+documentId, body.reason);
+    return this.workflow.rejectDocument(+documentId, body.reason, req.user.admin_id);
   }
 
   @Post('cross-validate')
