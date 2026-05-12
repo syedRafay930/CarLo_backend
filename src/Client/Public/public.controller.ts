@@ -9,15 +9,22 @@ import {
   Req,
   ParseIntPipe,
   HttpCode,
+  Request,
   UnauthorizedException,
 } from '@nestjs/common';
 import { VehicleService } from 'src/FleetManager/Vehicle/vehicle.service';
 import { ClientJwtBlacklistGuard } from '../Auth/guards/jwt.guard';
 import { CreateVehicleReviewDto } from './dto/create_vehicle_review.dto';
+import { FleetService } from 'src/Admin/Fleet/fleet.service';
+import { PublicService } from './public.service';
 
-@Controller('public/vehicles')
+@Controller('public')
 export class PublicVehicleController {
-  constructor(private readonly vehicleService: VehicleService) {}
+  constructor(
+    private readonly vehicleService: VehicleService,
+    private readonly fleetService: FleetService,
+    private readonly publicService: PublicService,
+  ) {}
 
   @Get('makes')
   async getPublicVehicleMakes() {
@@ -34,7 +41,7 @@ export class PublicVehicleController {
     return this.vehicleService.getPublicCatalogColors();
   }
 
-  @Get('list')
+  @Get('vehicles/list')
   async getPublicVehicles(
     @Query('page') page: number,
     @Query('limit') limit: number,
@@ -71,19 +78,19 @@ export class PublicVehicleController {
     );
   }
 
-  @Get('details/:vehicleId')
+  @Get('vehicles/details/:vehicleId')
   async getVehicleDetails(@Param('vehicleId') vehicleId: number) {
     return this.vehicleService.getVehicleById(vehicleId);
   }
 
-  @Get('reviews/:vehicleId')
+  @Get('vehicles/reviews/:vehicleId')
   async getVehicleReviews(@Param('vehicleId') vehicleId: number) {
     return this.vehicleService.getReviewsByVehicleId(vehicleId);
   }
 
   @UseGuards(ClientJwtBlacklistGuard)
   @HttpCode(201)
-  @Post('reviews/:vehicleId')
+  @Post('vehicles/reviews/:vehicleId')
   async createVehicleReview(
     @Param('vehicleId', ParseIntPipe) vehicleId: number,
     @Body() dto: CreateVehicleReviewDto,
@@ -97,5 +104,27 @@ export class PublicVehicleController {
       rating: dto.rating,
       review: dto.review,
     });
+  }
+
+  @Get('fleets')
+  async getFleets(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search?: string,
+    @Query('city') city?: string,
+    @Query('type') type?: 'individual' | 'shop',
+  ) {
+    return this.publicService.getPublicFleets({
+      page: Number(page),
+      limit: Number(limit),
+      search,
+      city,
+      type,
+    });
+  }
+
+  @Get('fleets/:fleetId')
+  async getFleetDetail(@Param('fleetId', ParseIntPipe) fleetId: number) {
+    return this.publicService.getPublicFleetDetail(fleetId);
   }
 }

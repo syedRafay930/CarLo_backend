@@ -12,6 +12,8 @@ import { AdminNotifications } from 'src/entities/entities/AdminNotifications';
 import { SaveFcmTokenDto } from './dto/save-fcm-token.dto';
 import { UsersService } from 'src/Admin/User/user.service';
 import { FleetManagerNotifications } from 'src/entities/entities/FleetManagerNotifications';
+import { ClientFcmTokens } from 'src/entities/entities/ClientFcmTokens';
+import { ClientNotifications } from 'src/entities/entities/ClientNotifications';
 
 @Injectable()
 export class FirebaseService {
@@ -27,6 +29,12 @@ export class FirebaseService {
 
     @InjectRepository(FleetManagerNotifications)
     private readonly fmNotifRepo: Repository<FleetManagerNotifications>,
+
+    @InjectRepository(ClientFcmTokens)
+    private readonly clientFcmRepo: Repository<ClientFcmTokens>,
+
+    @InjectRepository(ClientNotifications)
+    private readonly clientNotifRepo: Repository<ClientNotifications>,
 
     private readonly userService: UsersService,
   ) {}
@@ -79,6 +87,31 @@ export class FirebaseService {
     });
 
     return await this.fleetfcmRepo.save(saved);
+  }
+
+  async saveClientFcmToken(dto: SaveFcmTokenDto) {
+    const existing = await this.clientFcmRepo.findOne({
+      where: { token: dto.token },
+      relations: ['clientUser'],
+    });
+
+    if (existing) {
+      existing.clientUser = { id: dto.user_id } as any;
+      existing.platform = dto.platform as 'web' | 'android' | 'ios';
+      existing.isActive = true;
+      existing.updatedAt = new Date();
+      return await this.clientFcmRepo.save(existing);
+    }
+
+    const saved = this.clientFcmRepo.create({
+      clientUser: { id: dto.user_id },
+      token: dto.token,
+      platform: dto.platform as 'web' | 'android' | 'ios',
+      isActive: true,
+      createdAt: new Date(),
+    });
+
+    return await this.clientFcmRepo.save(saved);
   }
 
   async deleteAdminFcmToken(
@@ -297,6 +330,83 @@ export class FirebaseService {
         successCount++;
       } catch (error) {
         console.error('FCM Error for FM token', t.token, error);
+        failureCount++;
+      }
+    }
+
+    return {
+      success: true,
+      successCount,
+      failureCount,
+      totalNotified: tokens.length,
+    };
+  }
+
+  async saveAndSendNotificationToClient(dto: {
+    title: string;
+    body: string;
+    receiver_id: number;
+    booking_id?: number;
+    sender_fm_id?: number;
+    sender_admin_id?: number;
+    type?: string;
+    redirect_url?: string;
+  }) {
+    // 1. Notification save karo
+    const notif = this.clientNotifRepo.create({
+      title: dto.title,
+      body: dto.body,
+      notiType: dto.type || 'system',
+      redirectUrl: dto.redirect_url || null,
+      isRead: false,
+      receiver: { id: dto.receiver_id },
+      booking: dto.booking_id ? { id: dto.booking_id } : null,
+      senderFleetManager: dto.sender_fm_id ? { id: dto.sender_fm_id } : null,
+      senderAdmin: dto.sender_admin_id ? { id: dto.sender_admin_id } : null,
+      createdAt: new Date(),
+    } as ClientNotifications);
+
+    const saved = await this.clientNotifRepo.save(notif);
+
+    // 2. FCM initialized check
+    if (admin.apps.length === 0) {
+      console.warn('[Firebase] FCM skipped — Firebase Admin not initialized');
+      return { success: true, message: 'FCM disabled (no service account)' };
+    }
+
+    // 3. Client k tokens fetch karo
+    const tokens = await this.clientFcmRepo.find({
+      where: { clientUser: { id: dto.receiver_id }, isActive: true },
+    });
+
+    if (!tokens.length) {
+      console.log('No FCM tokens for client:', dto.receiver_id);
+      return { success: true, message: 'Notification saved, no FCM tokens' };
+    }
+
+    // 4. Push bhejo
+    let successCount = 0;
+    let failureCount = 0;
+
+    const dataPayload: Record<string, string> = {
+      id: saved.id?.toString() || '',
+      title: dto.title,
+      body: dto.body,
+      type: dto.type || 'system',
+      booking_id: dto.booking_id?.toString() || '',
+      redirect_url: dto.redirect_url || '',
+    };
+
+    for (const t of tokens) {
+      try {
+        await admin.messaging().send({
+          token: t.token,
+          notification: { title: dto.title, body: dto.body },
+          data: dataPayload,
+        });
+        successCount++;
+      } catch (error) {
+        console.error('FCM Error for client token', t.token, error);
         failureCount++;
       }
     }

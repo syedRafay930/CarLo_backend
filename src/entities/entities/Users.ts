@@ -12,6 +12,8 @@ import { FleetManagers } from './FleetManagers';
 import { Transactions } from './Transactions';
 import { UserFavoriteVehicles } from './UserFavoriteVehicles';
 import { VehicleRatings } from './VehicleRatings';
+import { ClientNotifications } from './ClientNotifications';
+import { ClientFcmTokens } from './ClientFcmTokens';
 
 @Index('users_pkey', ['id'], { unique: true })
 @Entity('users', { schema: 'public' })
@@ -70,7 +72,7 @@ export class Users {
 
   @OneToMany(
     () => FleetManagerNotifications,
-    (fleetManagerNotifications) => fleetManagerNotifications.senderClient
+    (fleetManagerNotifications) => fleetManagerNotifications.senderClient,
   )
   fleetManagerNotifications: FleetManagerNotifications[];
 
@@ -88,4 +90,10 @@ export class Users {
 
   @OneToMany(() => VehicleRatings, (vehicleRatings) => vehicleRatings.user)
   vehicleRatings: VehicleRatings[];
+
+  @OneToMany(() => ClientNotifications, (n) => n.receiver)
+  clientNotifications: ClientNotifications[];
+
+  @OneToMany(() => ClientFcmTokens, (token) => token.clientUser)
+  clientFcmTokens: ClientFcmTokens[];
 }

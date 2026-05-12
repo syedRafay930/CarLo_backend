@@ -11,6 +11,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { FirebaseController } from './firebase.controller';
 import { UsersModule } from 'src/Admin/User/user.module';
+import { ClientFcmTokens } from 'src/entities/entities/ClientFcmTokens';
+import { ClientNotifications } from 'src/entities/entities/ClientNotifications';
 
 const firebaseModuleLogger = new Logger('FirebaseModule');
 
@@ -29,6 +31,8 @@ function resolveCredentialsPath(config: ConfigService): string | null {
     TypeOrmModule.forFeature([
       AdminFcmTokens,
       FleetFcmTokens,
+      ClientFcmTokens,
+      ClientNotifications,
       FleetManagerNotifications,
       AdminNotifications,
     ]),

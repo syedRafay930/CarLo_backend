@@ -15,4 +15,9 @@ export class FirebaseController {
   async saveClientToken(@Body() dto: SaveFcmTokenDto) {
     return await this.firebaseService.saveFleetFcmToken(dto);
   }
+
+  @Post('saveClientToken')
+  async saveClientToken2(@Body() dto: SaveFcmTokenDto) {
+    return await this.firebaseService.saveClientFcmToken(dto);
+  }
 }
