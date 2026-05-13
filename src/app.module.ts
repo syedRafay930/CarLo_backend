@@ -15,6 +15,7 @@ import { OcrModule } from './OCR/ocr.module';
 import { AnalyticsModule } from './Analytics/analytics.module';
 import { NotificationModule } from './Admin/notification/notification.module';
 import { FlutterModule } from './Flutter/flutter.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { FlutterModule } from './Flutter/flutter.module';
     AnalyticsModule,
     NotificationModule,
     FlutterModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
