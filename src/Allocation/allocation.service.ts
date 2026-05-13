@@ -46,14 +46,19 @@ export class AllocationService {
     const ms = returnD.getTime() - pickup.getTime();
     const totalDays = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 
-    const vehicles = await this.vehicleRepo.find({
-      where: {
-        isApprovedByAdmin: true,
-        vehicleStatus: 'available',
-        isDeleted: false,
-      },
-      relations: ['fleetManager'],
-    });
+    const vehicles = await this.vehicleRepo
+      .createQueryBuilder('vehicle')
+      .where('vehicle.isApprovedByAdmin = :ap', { ap: true })
+      .andWhere('vehicle.vehicleStatus = :st', { st: 'available' })
+      .andWhere('vehicle.isDeleted = :del', { del: false })
+      .leftJoinAndSelect('vehicle.fleetManager', 'fm')
+      .leftJoinAndSelect(
+        'vehicle.fleetManagerVehicleDocuments',
+        'coverImage',
+        'coverImage.docType = :coverDocType',
+        { coverDocType: 'image_coverimg' },
+      )
+      .getMany();
 
     if (vehicles.length === 0) {
       return this.buildEmptyResult(dto, totalDays, 0);
@@ -282,11 +287,16 @@ export class AllocationService {
         selfDriveBaseRate: self,
         driverIncludedRate: drv,
         licensePlate: vehicle.licensePlate,
+        fleetId: vehicle.fleetManager?.id ?? 0,
         fleetName: vehicle.fleetManager?.name || 'Unknown',
         fleetCity: vehicle.fleetManager?.city || 'Unknown',
         fleetCountry: vehicle.fleetManager?.country || 'Pakistan',
         averageRating: ratings.avg,
         totalRatings: ratings.count,
+        coverImageUrl:
+          (vehicle as FleetManagerVehicles & {
+            fleetManagerVehicleDocuments?: { documentUrl: string }[];
+          }).fleetManagerVehicleDocuments?.[0]?.documentUrl ?? null,
       },
     };
   }

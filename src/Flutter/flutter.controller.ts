@@ -481,7 +481,10 @@ export class FlutterController {
 
   @UseGuards(ClientJwtBlacklistGuard)
   @Post('recommendations')
-  async recommendations(@Body() dto: FlutterRecommendationsDto) {
+  async recommendations(
+    @Body() dto: FlutterRecommendationsDto,
+    @Req() req: ClientRequest,
+  ) {
     const pickupDate = new Date();
     const returnDate = new Date(pickupDate.getTime() + 24 * 60 * 60 * 1000);
     const result = await this.allocationService.getRecommendations({
@@ -491,11 +494,55 @@ export class FlutterController {
       returnDate: returnDate.toISOString(),
     });
 
-    return {
-      data: result.recommendations.map((recommendation: any) =>
-        this.mapAllocationVehicle(recommendation.vehicle),
-      ),
-    };
+    const ids = result.recommendations.map(
+      (recommendation: { vehicle: { id: number } }) => recommendation.vehicle.id,
+    );
+    const catalogRows =
+      await this.vehicleService.getPublicCatalogListVehiclesByIds(ids);
+    const catalogById = new Map<number, any>(
+      catalogRows.map((vehicle: { id: number }) => [vehicle.id, vehicle]),
+    );
+
+    const favoriteIds = await this.favoriteVehicleIds(
+      req.user?.client_id,
+      ids,
+    );
+
+    const data = result.recommendations.map((recommendation: any) => {
+      const v = recommendation.vehicle as {
+        id: number;
+        make: string;
+        model: string;
+        year: number;
+        color: string | null;
+        selfDriveBaseRate: number;
+        fleetId: number;
+        fleetCity: string;
+        coverImageUrl: string | null;
+        averageRating: number;
+        totalRatings: number;
+      };
+      const row = catalogById.get(v.id);
+      const vehicleForList =
+        row ??
+        ({
+          id: v.id,
+          make: v.make,
+          model: v.model,
+          year: v.year,
+          color: v.color,
+          selfDriveBaseRate: v.selfDriveBaseRate,
+          fleetManager: { id: v.fleetId, city: v.fleetCity },
+          fleetCity: v.fleetCity,
+          coverImageUrl: v.coverImageUrl,
+          averageRating: v.averageRating,
+          reviewCount: v.totalRatings,
+          totalRatings: v.totalRatings,
+        } as any);
+      return this.mapVehicleListItem(vehicleForList, favoriteIds);
+    });
+
+    return { data };
   }
 
   @UseGuards(ClientJwtBlacklistGuard)
@@ -708,23 +755,6 @@ export class FlutterController {
         booking.finalAmountSettled ?? booking.initialTotalCharge,
       ),
       createdAt: booking.createdAt,
-    };
-  }
-
-  private mapAllocationVehicle(vehicle: any) {
-    return {
-      id: vehicle.id,
-      make: vehicle.make ?? '',
-      model: vehicle.model ?? '',
-      year: Number(vehicle.year ?? 0),
-      color: vehicle.color ?? '',
-      pricePerDay: this.numberValue(vehicle.selfDriveBaseRate),
-      city: vehicle.fleetCity ?? '',
-      fleetId: 0,
-      thumbnailUrl: null,
-      averageRating: this.numberValue(vehicle.averageRating),
-      totalReviews: Number(vehicle.totalRatings ?? 0),
-      isFavorited: false,
     };
   }
 

@@ -31,11 +31,14 @@ export interface VehicleScore {
     selfDriveBaseRate: number;
     driverIncludedRate: number;
     licensePlate: string;
+    fleetId: number;
     fleetName: string;
     fleetCity: string;
     fleetCountry: string;
     averageRating: number;
     totalRatings: number;
+    /** Same source as public catalog `coverImageUrl` (image_coverimg document). */
+    coverImageUrl: string | null;
   };
 }
 

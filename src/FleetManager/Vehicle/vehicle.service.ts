@@ -429,59 +429,9 @@ export class VehicleService {
     const priceMap =
       await this.dynamicPricingService.getActivePricingMapForVehicleIds(ids);
 
-    const cleanedData = data.map((vehicle) => {
-      const vehicleWithRelations = vehicle as any;
-      const coverImage =
-        vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl ||
-        null;
-
-      const ratingsArray = vehicleWithRelations.vehicleRatings || [];
-      const totalRatingSum = ratingsArray.reduce(
-        (sum, review) => sum + review.rating,
-        0,
-      );
-      const reviewCount = ratingsArray.length;
-      const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
-
-      const baseRaw = vehicle.selfDriveBaseRate;
-      const baseRate =
-        typeof baseRaw === 'string'
-          ? parseFloat(baseRaw)
-          : Number(baseRaw ?? 0);
-
-      let effectiveDailyRate = Number.isFinite(baseRate) ? baseRate : 0;
-      let dynamicPricingActive = false;
-      let priceAdjustmentPercent = 0;
-
-      if (this.dynamicPricingService.isDynamicPricingEnabled(vehicle)) {
-        const row = priceMap.get(vehicle.id);
-        if (row) {
-          const adj = parseFloat(String(row.newDailyRate ?? baseRate));
-          if (Number.isFinite(adj)) effectiveDailyRate = adj;
-          dynamicPricingActive = true;
-          try {
-            const o = JSON.parse(row.engineBreakdownJson || '{}') as {
-              multiplierPercent?: number;
-            };
-            priceAdjustmentPercent = o.multiplierPercent ?? 0;
-          } catch {
-            priceAdjustmentPercent = 0;
-          }
-        }
-      }
-
-      return {
-        ...vehicle,
-        coverImageUrl: coverImage,
-        averageRating: parseFloat(averageRating.toFixed(1)),
-        reviewCount: reviewCount,
-        fleetManagerVehicleDocuments: undefined,
-        vehicleRatings: undefined,
-        effectiveDailyRate,
-        dynamicPricingActive,
-        priceAdjustmentPercent,
-      };
-    });
+    const cleanedData = data.map((vehicle) =>
+      this.shapePublicCatalogListVehicle(vehicle, priceMap),
+    );
 
     return {
       data: cleanedData,
@@ -489,6 +439,102 @@ export class VehicleService {
       page: safePage,
       limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit),
+    };
+  }
+
+  /**
+   * Same row shape as {@link getPublicCatalogVehicles} `data[]` (cover URL, ratings, dynamic price).
+   * Order matches the query result, not necessarily `vehicleIds` order.
+   */
+  async getPublicCatalogListVehiclesByIds(vehicleIds: number[]) {
+    const ids = [...new Set(vehicleIds)].filter(
+      (id) => typeof id === 'number' && Number.isFinite(id),
+    );
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const queryBuilder = this.vehiclesRepository
+      .createQueryBuilder('vehicle')
+      .where('vehicle.isDeleted = :isDel', { isDel: false })
+      .andWhere('vehicle.isApprovedByAdmin = :isAp', { isAp: true })
+      .andWhere('vehicle.vehicleStatus = :vstat', { vstat: 'available' })
+      .andWhere('vehicle.id IN (:...ids)', { ids })
+      .leftJoinAndSelect('vehicle.fleetManager', 'fm')
+      .leftJoinAndSelect(
+        'vehicle.fleetManagerVehicleDocuments',
+        'coverImage',
+        'coverImage.docType = :docType',
+        { docType: 'image_coverimg' },
+      )
+      .leftJoinAndSelect('vehicle.vehicleRatings', 'rating');
+
+    const data = await queryBuilder.getMany();
+    const priceMap =
+      await this.dynamicPricingService.getActivePricingMapForVehicleIds(ids);
+
+    return data.map((vehicle) =>
+      this.shapePublicCatalogListVehicle(vehicle, priceMap),
+    );
+  }
+
+  private shapePublicCatalogListVehicle(
+    vehicle: FleetManagerVehicles,
+    priceMap: Map<number, { newDailyRate?: unknown; engineBreakdownJson?: string | null }>,
+  ) {
+    const vehicleWithRelations = vehicle as FleetManagerVehicles & {
+      fleetManagerVehicleDocuments?: { documentUrl: string }[];
+      vehicleRatings?: { rating: number }[];
+    };
+    const coverImage =
+      vehicleWithRelations.fleetManagerVehicleDocuments?.[0]?.documentUrl ||
+      null;
+
+    const ratingsArray = vehicleWithRelations.vehicleRatings || [];
+    const totalRatingSum = ratingsArray.reduce(
+      (sum, review) => sum + (review.rating ?? 0),
+      0,
+    );
+    const reviewCount = ratingsArray.length;
+    const averageRating = reviewCount > 0 ? totalRatingSum / reviewCount : 0;
+
+    const baseRaw = vehicle.selfDriveBaseRate;
+    const baseRate =
+      typeof baseRaw === 'string'
+        ? parseFloat(baseRaw)
+        : Number(baseRaw ?? 0);
+
+    let effectiveDailyRate = Number.isFinite(baseRate) ? baseRate : 0;
+    let dynamicPricingActive = false;
+    let priceAdjustmentPercent = 0;
+
+    if (this.dynamicPricingService.isDynamicPricingEnabled(vehicle)) {
+      const row = priceMap.get(vehicle.id);
+      if (row) {
+        const adj = parseFloat(String(row.newDailyRate ?? baseRate));
+        if (Number.isFinite(adj)) effectiveDailyRate = adj;
+        dynamicPricingActive = true;
+        try {
+          const o = JSON.parse(row.engineBreakdownJson || '{}') as {
+            multiplierPercent?: number;
+          };
+          priceAdjustmentPercent = o.multiplierPercent ?? 0;
+        } catch {
+          priceAdjustmentPercent = 0;
+        }
+      }
+    }
+
+    return {
+      ...vehicle,
+      coverImageUrl: coverImage,
+      averageRating: parseFloat(averageRating.toFixed(1)),
+      reviewCount: reviewCount,
+      fleetManagerVehicleDocuments: undefined,
+      vehicleRatings: undefined,
+      effectiveDailyRate,
+      dynamicPricingActive,
+      priceAdjustmentPercent,
     };
   }
 
