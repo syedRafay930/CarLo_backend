@@ -254,6 +254,8 @@ export class BookingService {
         transactionDetail: {
           transactionId: 'N/A',
           methodUsed: 'Payment Pending',
+          processedAt: null,
+          processedat: null,
           initialBaseCharge: 0,
           extraCharges: 0,
           finalTotalAmount: null,
@@ -274,7 +276,8 @@ export class BookingService {
 
       transactionDetail: {
         transactionId: transaction?.transactionCode || 'N/A',
-        processedat: transaction?.processedAt,
+        processedAt: transaction?.processedAt ?? null,
+        processedat: transaction?.processedAt ?? null,
         methodUsed: transaction?.method || 'Cash (Advance)',
         transactionStatus: transaction?.status,
         extraCharges: parseFloat(bookingDetails.extraChargesApplied || '0.00'),

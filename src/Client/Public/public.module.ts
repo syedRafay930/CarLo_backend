@@ -18,5 +18,6 @@ import { FleetModule } from 'src/Admin/Fleet/fleet.module';
   ],
   controllers: [PublicVehicleController],
   providers: [PublicService],
+  exports: [PublicService],
 })
 export class PublicModule {}

@@ -9,5 +9,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [TypeOrmModule.forFeature([ClientNotifications])],
   controllers: [ClientNotificationsController],
   providers: [ClientNotificationsService],
+  exports: [ClientNotificationsService],
 })
 export class ClientNotificationsModule {}

@@ -28,5 +28,6 @@ import { HostService } from './host.service';
   ],
   controllers: [HostController],
   providers: [HostService],
+  exports: [HostService],
 })
 export class HostModule {}

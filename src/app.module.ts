@@ -14,6 +14,7 @@ import { DynamicPricingModule } from './DynamicPricing/dynamic-pricing.module';
 import { OcrModule } from './OCR/ocr.module';
 import { AnalyticsModule } from './Analytics/analytics.module';
 import { NotificationModule } from './Admin/notification/notification.module';
+import { FlutterModule } from './Flutter/flutter.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { NotificationModule } from './Admin/notification/notification.module';
     OcrModule,
     AnalyticsModule,
     NotificationModule,
+    FlutterModule,
   ],
 })
 export class AppModule {}
