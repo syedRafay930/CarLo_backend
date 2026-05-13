@@ -660,7 +660,11 @@ export class FleetService {
       const { data } = await axios.post(
         `${'https://bunkmate-railway-postage.ngrok-free.dev'}/verify-fleet-application`,
         form,
-        { headers: form.getHeaders() },
+        { headers: {
+          ...form.getHeaders(),
+          'ngrok-skip-browser-warning': 'true',
+          }
+        },
       );
       return data.extracted_data;
     } catch (err: any) {

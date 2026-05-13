@@ -956,7 +956,11 @@ export class VehicleService {
       const { data } = await axios.post(
         `${'https://bunkmate-railway-postage.ngrok-free.dev'}/verify-vehicle-documents`,
         form,
-        { headers: form.getHeaders() },
+        { headers: {
+          ...form.getHeaders(),
+          'ngrok-skip-browser-warning': 'true',
+          }
+        },
       );
       return data;
     } catch (err: any) {
