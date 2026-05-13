@@ -16,6 +16,9 @@ async function bootstrap() {
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
     'http://127.0.0.1:5175',
+    'https://carlo-admin-frontend-web.vercel.app',
+    'https://carlo-fmp-frontend-web.vercel.app',
+    'https://carlo-frontend.vercel.app'
   ];
   app.enableCors({
     origin: envOrigins.length > 0 ? envOrigins : defaultOrigins,
